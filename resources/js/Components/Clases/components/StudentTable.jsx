@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, Eye } from 'lucide-react';
 import ConfirmModal from './ConfirmModal';
+import { EditStudentModal } from './EditStudentModal';
+import { motion } from 'framer-motion';
 import EditModal from './EditStudentModal';
-import { toast } from 'react-toastify';
+import csrfFetch from '@/utils/csrfFetch';
 
-const StudentTable = ({ students, onStudentDelete, toggleAssignment, onStudentEdit }) => {
+const StudentTable = ({ students, onStudentEdit, toggleAssignment, onStudentDelete }) => {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [selectedStudentId, setSelectedStudentId] = useState(null);
@@ -40,19 +42,18 @@ const StudentTable = ({ students, onStudentDelete, toggleAssignment, onStudentEd
     };
 
     // Guardar cambios del estudiante
-    const handleEditSave = async (updatedStudent) => {
+    const handleSave = async (updatedStudent) => {
         setLoading({ ...loading, editing: true });
         try {
-            await onStudentEdit(selectedStudent.id, updatedStudent); // Espera la respuesta del padre
-            toast.success('Estudiante actualizado correctamente'); // Notificación de éxito
+            await onStudentEdit(updatedStudent);
         } catch (error) {
-            toast.error(`Error al editar estudiante: ${error.message}`); // Notificación de error
+            console.error('Error al guardar estudiante:', error);
         } finally {
             setLoading({ ...loading, editing: false });
             setIsEditModalOpen(false);
-            setSelectedStudent(null);
         }
     };
+
 
     return (
         <div className="mt-2 bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
@@ -102,6 +103,7 @@ const StudentTable = ({ students, onStudentDelete, toggleAssignment, onStudentEd
                                     >
                                         <Trash2 className="w-4 h-4 text-red-500" />
                                     </button>
+
                                 </div>
                             </td>
                         </tr>
@@ -118,14 +120,14 @@ const StudentTable = ({ students, onStudentDelete, toggleAssignment, onStudentEd
                 />
             )}
             {/* Modal de Edición */}
-            {isEditModalOpen && selectedStudent && (
+            {selectedStudent && (
                 <EditModal
                     isOpen={isEditModalOpen}
                     onClose={() => setIsEditModalOpen(false)}
-                    onSave={handleEditSave}
+                    onSave={handleSave}
                     title="Editar Estudiante"
                     initialData={{
-                        id: selectedStudent.id, // Asegúrate de pasar el ID
+                        id: selectedStudent.id,
                         nombre: selectedStudent.nombre,
                         apellidos: selectedStudent.apellidos,
                         intolerancia_religion: selectedStudent.intolerancia_religion,
@@ -137,14 +139,29 @@ const StudentTable = ({ students, onStudentDelete, toggleAssignment, onStudentEd
                         {
                             name: 'intolerancia_religion',
                             label: 'Intolerancia/Religión',
-                            type: 'text',
+                            type: 'select',
                         },
                         { name: 'beca', label: 'Beca', type: 'checkbox' },
                     ]}
                 />
             )}
+
+
         </div>
     );
 };
 
 export default StudentTable;
+
+
+
+
+
+
+
+
+
+
+
+
+

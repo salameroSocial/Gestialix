@@ -25,7 +25,7 @@ export default function Login({ status, canResetPassword }) {
     };
 
     return (
-        <GuestLayout>
+        <>
             <Head title="Log in" />
             <div className="min-h-screen bg-gradient-to-br from-green-100 to-blue-100 flex items-center justify-center p-4">
                 <motion.div
@@ -151,7 +151,7 @@ export default function Login({ status, canResetPassword }) {
                     <Footer text="¿No tienes una cuenta? Regístrate" link="/register" size="text-xs" />
                 </motion.div>
             </div>
-        </GuestLayout>
+        </>
     );
 }
 

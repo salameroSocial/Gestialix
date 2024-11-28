@@ -74,8 +74,18 @@ export default function ClaseManagement() {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [selectedStudent, setSelectedStudent] = useState(null);
 
     useEffect(() => {
+        if (!isEditModalOpen) {
+            setEditingClass(null);
+            setSelectedStudent(null);
+        }
+    }, [isEditModalOpen]);
+
+
+    useEffect(() => {
+
         const fetchClasses = async () => {
             try {
                 const response = await csrfFetch('/api/classes');
@@ -125,7 +135,9 @@ export default function ClaseManagement() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updatedClass),
             });
+
             if (!response.ok) throw new Error('Error al editar la clase');
+
             dispatch({ type: 'UPDATE_CLASS', payload: updatedClass });
             setEditingClass(null);
             setIsEditModalOpen(false);
@@ -134,6 +146,24 @@ export default function ClaseManagement() {
             console.error(error);
         }
     };
+
+    const handleEditStudent = async (updatedStudent) => {
+        try {
+            const response = await csrfFetch(`/api/students/${updatedStudent.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedStudent),
+            });
+
+            if (!response.ok) throw new Error('Error al actualizar el estudiante');
+
+            dispatch({ type: 'UPDATE_STUDENT', payload: updatedStudent });
+        } catch (error) {
+            console.error('Error al guardar el estudiante:', error);
+        }
+    };
+
+
 
     const handleDeleteClass = async (classId) => {
         try {
@@ -156,23 +186,46 @@ export default function ClaseManagement() {
 
             if (!response.ok) throw new Error('Error al guardar el cambio en el backend');
 
-            const updatedStudent = await response.json(); // El backend devuelve el estudiante actualizado
+            const updatedStudent = await response.json();
 
-            // Actualizar el estado local con los datos del backend
             dispatch({
                 type: 'UPDATE_STUDENT',
-                payload: { classId, updatedStudent },
+                payload: {
+                    classId,
+                    updatedStudent,
+                },
             });
         } catch (error) {
             console.error('Error al asignar/desasignar en el backend:', error);
-
-            // Revertir cambios locales en caso de error
-            dispatch({
-                type: 'TOGGLE_ASSIGNMENT',
-                payload: { classId, studentId, loading: false }, // Revertir estado de "Cargando..."
-            });
         }
     };
+
+    // funcion vieja
+    // const toggleAssignment = async (classId, studentId) => {
+    //     try {
+    //         const response = await csrfFetch(`/api/students/${studentId}/toggle-assignment`, {
+    //             method: 'PATCH',
+    //         });
+
+    //         if (!response.ok) throw new Error('Error al guardar el cambio en el backend');
+
+    //         const updatedStudent = await response.json(); // El backend devuelve el estudiante actualizado
+
+    //         // Actualizar el estado local con los datos del backend
+    //         dispatch({
+    //             type: 'UPDATE_STUDENT',
+    //             payload: { classId, updatedStudent },
+    //         });
+    //     } catch (error) {
+    //         console.error('Error al asignar/desasignar en el backend:', error);
+
+    //         // Revertir cambios locales en caso de error
+    //         dispatch({
+    //             type: 'TOGGLE_ASSIGNMENT',
+    //             payload: { classId, studentId, loading: false }, // Revertir estado de "Cargando..."
+    //         });
+    //     }
+    // };
 
     const filteredClasses = classes.filter(
         (cls) =>
@@ -232,7 +285,7 @@ export default function ClaseManagement() {
                         onClose={() => setIsAddingClass(false)}
                     />
                 )}
-                {isEditModalOpen && editingClass && (
+                {/* {isEditModalOpen && editingClass && (
                     <EditStudentModal
                         isOpen={isEditModalOpen}
                         onClose={() => setIsEditModalOpen(false)}
@@ -254,7 +307,29 @@ export default function ClaseManagement() {
                             },
                         ]}
                     />
+                )} */}
+                {isEditModalOpen && editingClass && (
+                    <AddEditClassModal
+                        isOpen={isEditModalOpen}
+                        onClose={() => setIsEditModalOpen(false)}
+                        onSave={handleEditClass}
+                        title="Editar Clase"
+                        initialData={editingClass}
+                    />
                 )}
+
+                {isEditModalOpen && selectedStudent && (
+                    <EditStudentModal
+                        isOpen={isEditModalOpen}
+                        onClose={() => setIsEditModalOpen(false)}
+                        onSave={(updatedStudent) =>
+                            handleEditStudent(updatedStudent, openClassId)
+                        }
+                        title="Editar Estudiante"
+                        initialData={selectedStudent}
+                    />
+                )}
+
             </div>
         </div>
     );

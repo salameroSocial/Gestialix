@@ -31,17 +31,23 @@ class EstudianteController extends Controller
 
     public function store(Request $request, Clase $class)
     {
+        // dd($request->all() + ['clase_id' => $class->id]);
         $validatedData = $request->validate([
             'nombre' => 'required|string|max:255',
             'apellidos' => 'required|string|max:255',
-            'intolerancia_religion' => 'nullable|string|max:255',
+            'intolerancia_religion' => 'nullable|array', // Cambiamos a array
+            'intolerancia_religion.*' => 'string|max:255', // Validamos cada elemento del array
             'beca' => 'boolean'
         ]);
+
+        // Convertimos intolerancia_religion a JSON para almacenarlo
+        $validatedData['intolerancia_religion'] = json_encode($validatedData['intolerancia_religion']);
 
         $estudiante = $class->estudiantes()->create($validatedData);
 
         return response()->json($estudiante, 201);
     }
+
 
     // Mostrar un estudiante específico
     public function show($id)
@@ -68,23 +74,27 @@ class EstudianteController extends Controller
     // Actualizar un estudiante específico
     public function update(Request $request, $id)
     {
-        try {
-            $request->validate([
-                // 'id' => 'required|string|max:255',
-                'nombre' => 'required|string|max:255',
-                'apellidos' => 'required|string|max:255',
-                'pago' => 'boolean',
-                'intolerancia_religion' => 'nullable|string|max:255',
-                'beca' => 'boolean'
-            ]);
+        $validatedData = $request->validate([
+            'nombre' => 'required|string|max:255',
+            'apellidos' => 'required|string|max:255',
+            'intolerancia_religion' => 'nullable|array',
+            'intolerancia_religion.*' => 'string|max:255',
+            'beca' => 'boolean',
+        ]);
 
-            $estudiante = Estudiante::findOrFail($id);
-            $estudiante->update($request->all());
-            return response()->json($estudiante, 201);
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 400);
-        }
+        // Convertimos intolerancia_religion a JSON
+        $validatedData['intolerancia_religion'] = json_encode($validatedData['intolerancia_religion']);
+
+        $student = Estudiante::findOrFail($id);
+        $student->update($validatedData);
+
+        // Decodificamos antes de enviar al frontend
+        $student->intolerancia_religion = json_decode($student->intolerancia_religion);
+
+        return response()->json($student, 200);
     }
+
+
 
     public function actualizaClase(Request $request, $id)
     {

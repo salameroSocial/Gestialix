@@ -19,4 +19,7 @@ class Estudiante extends Model
     {
         return $this->hasMany(Asistencia::class);
     }
+    protected $casts = [
+        'intolerancia_religion' => 'array', // Laravel convierte automáticamente JSON a array y viceversa
+    ];
 }

@@ -72,10 +72,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Student routes
         Route::get('/students', [EstudianteController::class, 'index']);
-        Route::post('/estudiantes', [EstudianteController::class, 'store'])->name('estudiantes.store');
+        Route::post('/students', [EstudianteController::class, 'store'])->name('estudiantes.store');
         Route::put('/students/{id}', [EstudianteController::class, 'update']);
         Route::patch('/students/{student}/toggle-assignment', [EstudianteController::class, 'toggleAssignment']);
-        Route::post('/estudiantes/filtrar', [EstudianteController::class, 'filtrar']);
+        Route::post('/students/filtrar', [EstudianteController::class, 'filtrar']);
 
         // Class routes
         Route::get('/classes', [ClaseController::class, 'index'])->name('clases.index');
