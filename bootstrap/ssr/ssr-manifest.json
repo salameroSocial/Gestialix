@@ -1,0 +1,214 @@
+{
+  "node_modules/laravel-vite-plugin/inertia-helpers/index.js": [],
+  "node_modules/react-datepicker/dist/react-datepicker.css": [
+    "/build/assets/AttendanceCrud-CaPyNMJz.js",
+    "/build/assets/AttendanceCrud-DqUanXUh.css"
+  ],
+  "resources/css/app.css": [],
+  "resources/js/Components/ApplicationLogo.jsx": [
+    "/build/assets/ApplicationLogo-xMpxFOcX.js"
+  ],
+  "resources/js/Components/Asistencia/AsistenciaBase.jsx": [
+    "/build/assets/AttendanceCrud-CaPyNMJz.js",
+    "/build/assets/AttendanceCrud-DqUanXUh.css"
+  ],
+  "resources/js/Components/Clases/ClaseManagement.jsx": [
+    "/build/assets/Clases-CIUiH8hI.js"
+  ],
+  "resources/js/Components/Clases/components/AddEditClassModal.jsx": [
+    "/build/assets/Clases-CIUiH8hI.js"
+  ],
+  "resources/js/Components/Clases/components/ClassItem.jsx": [
+    "/build/assets/Clases-CIUiH8hI.js"
+  ],
+  "resources/js/Components/Clases/components/ConfirmModal.jsx": [
+    "/build/assets/Clases-CIUiH8hI.js"
+  ],
+  "resources/js/Components/Clases/components/EditStudentModal.jsx": [
+    "/build/assets/Clases-CIUiH8hI.js"
+  ],
+  "resources/js/Components/Clases/components/StudentTable.jsx": [
+    "/build/assets/Clases-CIUiH8hI.js"
+  ],
+  "resources/js/Components/DangerButton.jsx": [
+    "/build/assets/DeleteUserForm-D2xBGxMS.js"
+  ],
+  "resources/js/Components/Dashboard/Charts.jsx": [
+    "/build/assets/Index-B_6KOJ4o.js"
+  ],
+  "resources/js/Components/Date/Picker.jsx": [
+    "/build/assets/AttendanceCrud-CaPyNMJz.js",
+    "/build/assets/AttendanceCrud-DqUanXUh.css"
+  ],
+  "resources/js/Components/Dropdown.jsx": [
+    "/build/assets/AuthenticatedLayout-Dva5dZwN.js"
+  ],
+  "resources/js/Components/InputError.jsx": [
+    "/build/assets/InputError-2JjWc6nJ.js"
+  ],
+  "resources/js/Components/InputLabel.jsx": [
+    "/build/assets/InputLabel-DDs2XNYP.js"
+  ],
+  "resources/js/Components/Modal.jsx": [
+    "/build/assets/DeleteUserForm-D2xBGxMS.js"
+  ],
+  "resources/js/Components/NavLink.jsx": [
+    "/build/assets/AuthenticatedLayout-Dva5dZwN.js"
+  ],
+  "resources/js/Components/PrimaryButton.jsx": [
+    "/build/assets/PrimaryButton-DDF1xnxF.js"
+  ],
+  "resources/js/Components/ResponsiveNavLink.jsx": [
+    "/build/assets/AuthenticatedLayout-Dva5dZwN.js"
+  ],
+  "resources/js/Components/SecondaryButton.jsx": [
+    "/build/assets/DeleteUserForm-D2xBGxMS.js"
+  ],
+  "resources/js/Components/Settings/management.jsx": [
+    "/build/assets/Ajustes-mlBM5IB-.js"
+  ],
+  "resources/js/Components/SocialLoginButton.jsx": [
+    "/build/assets/Login-B7SYM2c4.js"
+  ],
+  "resources/js/Components/TextInput.jsx": [
+    "/build/assets/TextInput-CCgNZyEO.js"
+  ],
+  "resources/js/Components/ui/Buttons.jsx": [
+    "/build/assets/Buttons-D9lSxtz5.js"
+  ],
+  "resources/js/Components/ui/Forms.jsx": [
+    "/build/assets/Ajustes-mlBM5IB-.js"
+  ],
+  "resources/js/Components/ui/Logo.jsx": [
+    "/build/assets/Logo-BI89IjeP.js"
+  ],
+  "resources/js/Components/ui/Spinner.jsx": [
+    "/build/assets/AppLayout-RoKqJet7.js"
+  ],
+  "resources/js/Components/ui/WordSlider.jsx": [
+    "/build/assets/Welcome copy-Bo2FdktQ.js"
+  ],
+  "resources/js/Components/ui/footer.jsx": [
+    "/build/assets/footer-BJKdI4B5.js"
+  ],
+  "resources/js/Layouts/AppLayout.jsx": [
+    "/build/assets/AppLayout-RoKqJet7.js"
+  ],
+  "resources/js/Layouts/AuthenticatedLayout.jsx": [
+    "/build/assets/AuthenticatedLayout-Dva5dZwN.js"
+  ],
+  "resources/js/Layouts/GuestLayout.jsx": [
+    "/build/assets/GuestLayout-XMlsEBkD.js"
+  ],
+  "resources/js/Layouts/SideBar.jsx": [
+    "/build/assets/AppLayout-RoKqJet7.js"
+  ],
+  "resources/js/Pages/Admin/Dashboard.jsx": [
+    "/build/assets/Dashboard-Ck5wKdMJ.js"
+  ],
+  "resources/js/Pages/Admin/Users/Edit.jsx": [
+    "/build/assets/Edit-CWlwUTDU.js"
+  ],
+  "resources/js/Pages/Admin/Users/Index.jsx": [
+    "/build/assets/Index-D4bcYvAD.js"
+  ],
+  "resources/js/Pages/AsistenciasManagement/AttendanceCrud.jsx": [
+    "/build/assets/AttendanceCrud-CaPyNMJz.js",
+    "/build/assets/AttendanceCrud-DqUanXUh.css"
+  ],
+  "resources/js/Pages/Auth/ConfirmPassword.jsx": [
+    "/build/assets/ConfirmPassword-DErc_Q5J.js"
+  ],
+  "resources/js/Pages/Auth/ForgotPassword.jsx": [
+    "/build/assets/ForgotPassword-e_1wEY2k.js"
+  ],
+  "resources/js/Pages/Auth/Login.jsx": [
+    "/build/assets/Login-B7SYM2c4.js"
+  ],
+  "resources/js/Pages/Auth/Register.jsx": [
+    "/build/assets/Register-yirkjRtk.js"
+  ],
+  "resources/js/Pages/Auth/ResetPassword.jsx": [
+    "/build/assets/ResetPassword-BSkZVBZi.js"
+  ],
+  "resources/js/Pages/Auth/VerifyEmail.jsx": [
+    "/build/assets/VerifyEmail-V-5uwRBv.js"
+  ],
+  "resources/js/Pages/ClasesManagement/Clases.jsx": [
+    "/build/assets/Clases-CIUiH8hI.js"
+  ],
+  "resources/js/Pages/ClasesManagement/Show.jsx": [
+    "/build/assets/Show-DEVkfsRB.js"
+  ],
+  "resources/js/Pages/Dashboard.jsx": [
+    "/build/assets/Dashboard-umB85uvT.js"
+  ],
+  "resources/js/Pages/Dashboard/Index.jsx": [
+    "/build/assets/Index-B_6KOJ4o.js"
+  ],
+  "resources/js/Pages/Index.jsx": [
+    "/build/assets/Index-Dx5LaNnK.js"
+  ],
+  "resources/js/Pages/Inicio.jsx": [
+    "/build/assets/Inicio-D5Lm1YI-.js"
+  ],
+  "resources/js/Pages/Landing.jsx": [
+    "/build/assets/Landing-CQS4tdRm.js"
+  ],
+  "resources/js/Pages/ListaComedor.jsx": [
+    "/build/assets/ListaComedor-CsVGrtEc.js"
+  ],
+  "resources/js/Pages/Menus/Create.jsx": [
+    "/build/assets/Create-CJq7rJ25.js"
+  ],
+  "resources/js/Pages/Menus/Edit.jsx": [
+    "/build/assets/Edit-DQzCA2ju.js"
+  ],
+  "resources/js/Pages/Menus/Index.jsx": [
+    "/build/assets/Index-Bey5-MEC.js"
+  ],
+  "resources/js/Pages/Navbar.jsx": [
+    "/build/assets/Navbar-Bcl58Nfk.js"
+  ],
+  "resources/js/Pages/Profile/Edit.jsx": [
+    "/build/assets/Edit-CfDkqpQW.js"
+  ],
+  "resources/js/Pages/Profile/Partials/DeleteUserForm.jsx": [
+    "/build/assets/DeleteUserForm-D2xBGxMS.js"
+  ],
+  "resources/js/Pages/Profile/Partials/UpdatePasswordForm.jsx": [
+    "/build/assets/UpdatePasswordForm-Ba_w9WZM.js"
+  ],
+  "resources/js/Pages/Profile/Partials/UpdateProfileInformationForm.jsx": [
+    "/build/assets/UpdateProfileInformationForm-CexUeXs4.js"
+  ],
+  "resources/js/Pages/Settings/Ajustes.jsx": [
+    "/build/assets/Ajustes-mlBM5IB-.js"
+  ],
+  "resources/js/Pages/Terminos/Terminos.jsx": [
+    "/build/assets/Terminos-CcIwL_qt.js"
+  ],
+  "resources/js/Pages/Terminos/Terms.jsx": [
+    "/build/assets/Terms-DBaExGa1.js"
+  ],
+  "resources/js/Pages/Test.jsx": [
+    "/build/assets/Test-1lKSrcdZ.js"
+  ],
+  "resources/js/Pages/TwoFactorAuthentication.jsx": [
+    "/build/assets/TwoFactorAuthentication-DPOgaFwR.js"
+  ],
+  "resources/js/Pages/Welcome copy.jsx": [
+    "/build/assets/Welcome copy-Bo2FdktQ.js"
+  ],
+  "resources/js/Pages/Welcome.jsx": [
+    "/build/assets/Welcome-ByNhCfvu.js"
+  ],
+  "resources/js/api/userService.js": [
+    "/build/assets/AppLayout-RoKqJet7.js"
+  ],
+  "resources/js/apiClient.js": [
+    "/build/assets/apiClient-DgzgG0IP.js"
+  ],
+  "resources/js/app.jsx": [],
+  "resources/js/bootstrap.js": []
+}
