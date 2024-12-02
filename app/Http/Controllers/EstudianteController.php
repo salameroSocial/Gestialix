@@ -31,25 +31,44 @@ class EstudianteController extends Controller
 
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'nombre' => 'required|string|max:255',
-            'apellidos' => 'required|string|max:255',
-            'clase_id' => 'required|exists:clases,id', // Validar que el ID de la clase existe
-            'intolerancia_religion' => 'nullable|array',
-            'intolerancia_religion.*' => 'string|max:255',
-            'beca' => 'boolean',
-        ]);
+        try {
+            // Validar los datos del request
+            $validatedData = $request->validate([
+                'nombre' => 'required|string|max:255',
+                'apellidos' => 'required|string|max:255',
+                'clase_id' => 'required|exists:clases,id', // Validar que el ID de la clase existe
+                'intolerancia_religion' => 'nullable|array',
+                'intolerancia_religion.*' => 'string|max:255',
+                'beca' => 'boolean',
+            ]);
 
-        // Convertimos intolerancia_religion a JSON
-        $validatedData['intolerancia_religion'] = json_encode($validatedData['intolerancia_religion']);
+            // Convertir intolerancia_religion a JSON si existe
+            if (isset($validatedData['intolerancia_religion'])) {
+                $validatedData['intolerancia_religion'] = json_encode($validatedData['intolerancia_religion']);
+            }
 
-        // Crear el estudiante
-        $estudiante = Estudiante::create($validatedData);
+            // Crear el estudiante
+            $estudiante = Estudiante::create($validatedData);
 
-        return response()->json($estudiante, 201);
+            // Retornar la respuesta exitosa
+            return response()->json([
+                'message' => 'Estudiante creado correctamente.',
+                'estudiante' => $estudiante,
+            ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Retornar errores de validación
+            return response()->json([
+                'message' => 'Error en la validación de los datos.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            // Retornar errores generales
+            return response()->json([
+                'message' => 'Error al crear el estudiante.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
-
-
 
     // Mostrar un estudiante específico
     public function show($id)

@@ -79,28 +79,67 @@ const classesReducer = (state, action) => {
             );
 
         case 'UPDATE_STUDENT':
-            // Actualiza los datos de un estudiante en una clase específica.
-            return state.map((cls) =>
-                cls.id === action.payload.classId
-                    ? {
-                        ...cls,
-                        estudiantes: cls.estudiantes.map((student) =>
-                            student.id === action.payload.updatedStudent.id
-                                ? action.payload.updatedStudent
-                                : student
+            return state.map((clase) => {
+                if (clase.id === action.payload.clase_id) {
+                    return {
+                        ...clase,
+                        estudiantes: clase.estudiantes.map((estudiante) =>
+                            estudiante.id === action.payload.id ? action.payload : estudiante
                         ),
-                    }
-                    : cls
-            );
+                    };
+                }
+                return clase;
+            });
         case 'ADD_STUDENT':
+            const { classId, student } = action.payload;
+            return state.map((clase) =>
+                clase.id === classId
+                    ? { ...clase, estudiantes: [...clase.estudiantes, student] }
+                    : clase
+            );
+
+
+        case 'DELETE_STUDENT':
             return state.map((clase) =>
                 clase.id === action.payload.classId
                     ? {
                         ...clase,
-                        estudiantes: [...clase.estudiantes, action.payload.student],
+                        estudiantes: clase.estudiantes.filter(
+                            (estudiante) => estudiante.id !== action.payload.studentId
+                        ),
                     }
                     : clase
             );
+
+        case 'DELETE_STUDENTS':
+            const { payload: studentIdsToDelete } = action;
+            return state.map((clase) => ({
+                ...clase,
+                estudiantes: clase.estudiantes.filter(
+                    (estudiante) => !studentIdsToDelete.includes(estudiante.id)
+                ),
+            }));
+
+        case 'ASSIGN_STUDENTS_COMEDOR':
+            const { payload: studentIdsToAssign } = action;
+            return state.map((clase) => ({
+                ...clase,
+                estudiantes: clase.estudiantes.map((estudiante) =>
+                    studentIdsToAssign.includes(estudiante.id)
+                        ? { ...estudiante, asignado_comedor: true }
+                        : estudiante
+                ),
+            }));
+        case 'UNASSIGN_STUDENTS_COMEDOR':
+            const { payload: studentIdsToUnassign } = action;
+            return state.map((clase) => ({
+                ...clase,
+                estudiantes: clase.estudiantes.map((estudiante) =>
+                    studentIdsToUnassign.includes(estudiante.id)
+                        ? { ...estudiante, asignado_comedor: false }
+                        : estudiante
+                ),
+            }));
 
         default:
             // Devuelve el estado actual si no coincide ninguna acción.

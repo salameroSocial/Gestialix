@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ClaseController;
 use App\Http\Controllers\EstudianteController;
 use App\Http\Controllers\AsistenciaController;
+use App\Http\Controllers\OcasionalesController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\StatsController;
 use App\Http\Controllers\crud;
@@ -70,9 +71,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('/attendance/{id}', [AsistenciaController::class, 'update']);
         Route::get('/attendance-or-create', [AsistenciaController::class, 'getOrCreateAttendance']);
 
+
+
+
+        Route::get('/attendance/ocasionales/{id}', [OcasionalesController::class, 'show']);
+
+
+
         // Student routes
         Route::get('/students', [EstudianteController::class, 'index']);
-        Route::post('/students', [EstudianteController::class, 'store'])->name('estudiantes.store');
+        Route::post('/students', [EstudianteController::class, 'store']);
         Route::put('/students/{id}', [EstudianteController::class, 'update']);
         Route::patch('/students/{student}/toggle-assignment', [EstudianteController::class, 'toggleAssignment']);
         Route::post('/students/filtrar', [EstudianteController::class, 'filtrar']);

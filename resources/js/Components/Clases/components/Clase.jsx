@@ -2,70 +2,136 @@ import React, { useState } from 'react';
 import {
     Card,
     CardHeader,
-    CardActions,
     CardContent,
+    CardActions,
     Collapse,
+    IconButton,
+    Button,
     List,
     ListItem,
     ListItemText,
-    ListItemSecondaryAction,
-    IconButton,
-    Button,
-    CircularProgress,
+    ListItemIcon,
+    Checkbox,
     Switch,
+    Tooltip,
+    Box,
+    FormControl,
+    Select,
+    MenuItem,
+    Typography,
+    CircularProgress,
 } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import AddIcon from '@mui/icons-material/Add';
-import ToggleOnIcon from '@mui/icons-material/ToggleOn';
-import ToggleOffIcon from '@mui/icons-material/ToggleOff';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-const ClassCard = ({
-    clase = {},
-    orderBy,
-    onToggleAssignment,
-    onEditClass,
-    onDeleteClass,
-    onOpenStudentModal,
-    dispatch,
-}) => {
-    const [expanded, setExpanded] = useState(false);
+import {
+    ExpandMore as ExpandMoreIcon,
+    ExpandLess as ExpandLessIcon,
+    Add as AddIcon,
+    Edit as EditIcon,
+    Delete as DeleteIcon,
+    Visibility as VisibilityIcon,
+} from '@mui/icons-material';
+import EditStudentModal from './EditStudentModal';
+import csrfFetch from '@/utils/csrfFetch';
 
-    const toggleExpand = () => {
-        setExpanded(!expanded);
+const truncateText = (text, maxLength) => {
+    return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
+};
+
+export default function StudentList({ clase, estudiantes, onEditClass, onDeleteClass, onOpenStudentModal, onToggleAssignment, onDeleteStudent, dispatch }) {
+    const [expanded, setExpanded] = useState(false);
+    const [selectedStudents, setSelectedStudents] = useState([]);
+    const [groupAction, setGroupAction] = useState('');
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [selectedStudent, setSelectedStudent] = useState(null);
+
+    const toggleExpand = () => setExpanded(!expanded);
+
+    const handleSelectAll = (event) => {
+        if (event.target.checked) {
+            setSelectedStudents(estudiantes.map(e => e.id));
+        } else {
+            setSelectedStudents([]);
+        }
     };
 
-    const estudiantes = clase?.estudiantes || []; // Si estudiantes es undefined, usa un array vacío por defecto
+    const handleSelectStudent = (studentId) => {
+        setSelectedStudents(prev =>
+            prev.includes(studentId)
+                ? prev.filter(id => id !== studentId)
+                : [...prev, studentId]
+        );
+    };
+    const handleApplyGroupAction = async () => {
+        console.log(`Aplicando ${groupAction} a`, selectedStudents);
+        if (selectedStudents.length === 0 || !groupAction) return;
 
-    // Ordenar los estudiantes según el filtro global
-    const sortedEstudiantes = [...estudiantes].sort((a, b) => {
-        if (orderBy === 'nombre') {
-            return a.nombre.localeCompare(b.nombre);
+        try {
+            if (groupAction === 'delete') {
+                const deletePromises = selectedStudents.map((studentId) =>
+                    csrfFetch(`/api/students/${studentId}`, { method: 'DELETE' })
+                );
+                await Promise.all(deletePromises);
+                dispatch({ type: 'DELETE_STUDENTS', payload: selectedStudents });
+            } else if (groupAction === 'assign') {
+                const assignPromises = selectedStudents.map((studentId) =>
+                    csrfFetch(`/api/students/${studentId}/toggle-assignment`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ asignado: true }),
+                    })
+                );
+                await Promise.all(assignPromises);
+                dispatch({ type: 'ASSIGN_STUDENTS_COMEDOR', payload: selectedStudents });
+            } else if (groupAction === 'unassign') {
+                const unassignPromises = selectedStudents.map((studentId) =>
+                    csrfFetch(`/api/students/${studentId}/toggle-assignment`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ asignado: false }),
+                    })
+                );
+                await Promise.all(unassignPromises);
+                dispatch({ type: 'UNASSIGN_STUDENTS_COMEDOR', payload: selectedStudents });
+            }
+            setSelectedStudents([]); // Limpia la selección
+            setGroupAction(''); // Limpia la acción
+        } catch (error) {
+            console.error('Error al realizar la acción grupal:', error);
         }
-        if (orderBy === 'apellidos') {
-            return a.apellidos.localeCompare(b.apellidos);
-        }
-        if (orderBy === 'asignado') {
-            return a.asignado === b.asignado ? 0 : a.asignado ? -1 : 1;
-        }
-        return 0; // Sin cambios si no hay criterio
-    });
+    };
+
+
+
+    const handleOpenEditModal = (student) => {
+        setSelectedStudent(student);
+        setIsEditModalOpen(true);
+    };
+
+    const handleSaveStudent = (updatedStudent) => {
+        // Implementar lógica de guardado aquí
+        console.log('Guardando estudiante actualizado:', updatedStudent);
+        setIsEditModalOpen(false);
+    };
 
     return (
         <Card>
             <CardHeader
-                title={clase.nombre}
+                title={
+                    <Tooltip title={clase.nombre}>
+                        <Typography variant="h6" noWrap>
+                            {truncateText(clase.nombre, 20)}
+                        </Typography>
+                    </Tooltip>
+                }
                 subheader={`Curso Académico: ${clase.curso_academico || 'N/A'}`}
                 action={
-                    <>
+                    <Box>
                         <IconButton onClick={() => onEditClass(clase)}>
                             <EditIcon />
                         </IconButton>
                         <IconButton onClick={() => onDeleteClass(clase)}>
                             <DeleteIcon />
                         </IconButton>
-                    </>
+                    </Box>
                 }
             />
             <CardActions>
@@ -75,84 +141,132 @@ const ClassCard = ({
                 >
                     {expanded ? 'Ocultar Alumnos' : 'Ver Alumnos'}
                 </Button>
-                {/* <Button
-                    startIcon={<AddIcon />}
-                    onClick={() => onSaveStudent(clase.id)} // Abrir modal para añadir estudiante
-                >    Añadir Alumno
-                </Button> */}
                 <Button
                     startIcon={<AddIcon />}
-                    onClick={() => onOpenStudentModal(clase.id)} // Pasa el ID de la clase
+                    onClick={() => onOpenStudentModal(clase.id)}
                 >
                     Añadir Alumno
                 </Button>
             </CardActions>
+
             <Collapse in={expanded} timeout="auto" unmountOnExit>
                 <CardContent>
-                    {/* Lista ordenada de estudiantes */}
+                    <Box display="flex" alignItems="center" mb={2}>
+                        <FormControl size="small" sx={{ minWidth: 150, mr: 2 }}>
+                            <Select
+                                value={groupAction}
+                                onChange={(e) => setGroupAction(e.target.value)}
+                                displayEmpty
+                            >
+                                <MenuItem value="" disabled>
+                                    Acciones en masa
+                                </MenuItem>
+                                <MenuItem value="assign">Asignar al Comedor</MenuItem>
+                                <MenuItem value="unassign">Desasignar del Comedor</MenuItem>
+                                <MenuItem value="delete">Eliminar</MenuItem>
+                            </Select>
+                        </FormControl>
+
+                        <Button
+                            onClick={handleApplyGroupAction}
+                            disabled={selectedStudents.length === 0 || !groupAction}
+                            variant="contained"
+                            color="primary"
+                        >
+                            Aplicar
+                        </Button>
+                    </Box>
+
+                    <ListItem dense>
+                        <ListItemIcon>
+                            <Checkbox
+                                edge="start"
+                                checked={selectedStudents.length === estudiantes.length && estudiantes.length > 0}
+                                indeterminate={selectedStudents.length > 0 && selectedStudents.length < estudiantes.length}
+                                onChange={handleSelectAll}
+                            />
+                        </ListItemIcon>
+                        <ListItemText primary="Seleccionar Todos" />
+                    </ListItem>
+
                     <List>
-                        {sortedEstudiantes.map((estudiante) => (
-                            <ListItem key={estudiante.id}>
+                        {estudiantes.map((estudiante) => (
+                            <ListItem key={`${clase.id}-${estudiante.id}`} dense>
+                                <ListItemIcon>
+                                    <Checkbox
+                                        edge="start"
+                                        checked={selectedStudents.includes(estudiante.id)}
+                                        onChange={() => handleSelectStudent(estudiante.id)}
+                                    />
+                                </ListItemIcon>
                                 <ListItemText
-                                    primary={`${estudiante.nombre} ${estudiante.apellidos}`}
+                                    primary={
+                                        <Tooltip title={`${estudiante.nombre} ${estudiante.apellidos}`}>
+                                            <Typography noWrap>
+                                                {truncateText(`${estudiante.nombre} ${estudiante.apellidos}`, 30)}
+                                            </Typography>
+                                        </Tooltip>
+                                    }
                                     secondary={`Asignado: ${estudiante.asignado_comedor ? 'Sí' : 'No'}`}
                                 />
-                                <ListItemSecondaryAction>
+                                <Box display="flex" alignItems="center">
                                     {estudiante.loading ? (
-                                        // Indicador de carga cuando está en proceso
                                         <CircularProgress size={24} />
                                     ) : (
-                                        // Switch personalizado para asignación
-                                        <Switch
-                                            checked={estudiante.asignado_comedor}
-                                            onChange={async () => {
-                                                // Mostrar indicador de carga temporal
-                                                dispatch({
-                                                    type: 'TOGGLE_ASSIGNMENT_LOADING',
-                                                    payload: { classId: clase.id, studentId: estudiante.id },
-                                                });
-
-                                                try {
-                                                    // Realiza la petición al backend
-                                                    await onToggleAssignment(clase.id, estudiante.id);
-
-                                                    // Actualiza el estado tras la respuesta del backend
+                                        <>
+                                            <Switch
+                                                checked={estudiante.asignado_comedor}
+                                                onChange={async () => {
                                                     dispatch({
-                                                        type: 'TOGGLE_ASSIGNMENT_SUCCESS',
+                                                        type: 'TOGGLE_ASSIGNMENT_LOADING',
                                                         payload: { classId: clase.id, studentId: estudiante.id },
                                                     });
-                                                } catch (error) {
-                                                    console.error('Error al alternar el estado:', error);
-
-                                                    // Manejo del error
-                                                    dispatch({
-                                                        type: 'TOGGLE_ASSIGNMENT_FAILURE',
-                                                        payload: { classId: clase.id, studentId: estudiante.id },
-                                                    });
-                                                }
-                                            }}
-                                            sx={{
-                                                '& .MuiSwitch-switchBase.Mui-checked': {
-                                                    color: 'green',
-                                                },
-                                                '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                                                    backgroundColor: 'green',
-                                                },
-                                                transition: 'all 0.3s ease', // Transición suave para el cambio
-                                            }}
-                                            color="primary"
-                                            inputProps={{ 'aria-label': 'Toggle Assignment' }}
-                                        />
+                                                    try {
+                                                        await onToggleAssignment(clase.id, estudiante.id);
+                                                        dispatch({
+                                                            type: 'TOGGLE_ASSIGNMENT_SUCCESS',
+                                                            payload: { classId: clase.id, studentId: estudiante.id },
+                                                        });
+                                                    } catch (error) {
+                                                        console.error('Error al alternar el estado:', error);
+                                                        dispatch({
+                                                            type: 'TOGGLE_ASSIGNMENT_FAILURE',
+                                                            payload: { classId: clase.id, studentId: estudiante.id },
+                                                        });
+                                                    }
+                                                }}
+                                                color="secondary"
+                                            />
+                                            <IconButton
+                                                onClick={() => onDeleteStudent(clase.id, estudiante.id)}
+                                                size="small"
+                                            >
+                                                <DeleteIcon fontSize="small" color="error" />
+                                            </IconButton>
+                                            <IconButton
+                                                onClick={() => handleOpenEditModal(estudiante)}
+                                                size="small"
+                                            >
+                                                <VisibilityIcon fontSize="small" color="primary" />
+                                            </IconButton>
+                                        </>
                                     )}
-                                </ListItemSecondaryAction>
+                                </Box>
                             </ListItem>
                         ))}
                     </List>
-
                 </CardContent>
             </Collapse>
+
+            {selectedStudent && (
+                <EditStudentModal
+                    open={isEditModalOpen}
+                    onClose={() => setIsEditModalOpen(false)}
+                    onSave={handleSaveStudent}
+                    studentData={selectedStudent}
+                    studentId={selectedStudent.id}
+                />
+            )}
         </Card>
     );
-};
-
-export default ClassCard;
+}

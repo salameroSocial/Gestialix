@@ -56,8 +56,10 @@ export default function SidebarMenu({ isOpen, toggleSidebar, userData }) {
             </button>
 
             <div className={`flex items-center justify-center h-20 ${isOpen ? 'px-4' : ''}`}>
-                <img src="/images/logoGestialix.svg" alt="Logo" className="w-10 h-10" />
-                {isOpen && <h1 className="ml-4 text-xl font-bold text-gray-700 dark:text-gray-300">Gestialix</h1>}
+                <a href="/dashboard" target='_blank'>
+                    <img src="/images/logoGestialix.svg" alt="Logo" className="w-10 h-10" />
+                    {isOpen && <h1 className="ml-4 text-xl font-bold text-gray-700 dark:text-gray-300">Gestialix</h1>}
+                </a>
             </div>
 
             <button

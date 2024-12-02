@@ -1,7 +1,7 @@
-import React, { useState, useReducer, useEffect } from 'react';
+import React, { useState, useReducer, useEffect, useRef } from 'react';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
-import ClassCard from './components/Clase';
+import StudentList from './components/Clase';
 import AddEditClassModal from './components/AddEditClassModal';
 import AddStudentModal from './components/AddStudentModal';
 import csrfFetch from '@/utils/csrfFetch';
@@ -21,8 +21,10 @@ import {
     Container,
 } from '@mui/material';
 import SortIcon from '@mui/icons-material/Sort';
+import ToastManager from '../ToastManager';
 
 export default function ClaseManagement() {
+    const toastRef = useRef();
     const [classes, dispatch] = useReducer(classesReducer, []);
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
@@ -33,6 +35,10 @@ export default function ClaseManagement() {
     const [isStudentModalOpen, setIsStudentModalOpen] = useState(false);
     const [selectedClassId, setSelectedClassId] = useState(null);
 
+
+    const showToast = (message, severity) => {
+        toastRef.current.showToast(message, severity);
+    };
     // Escucha para detectar cambios en el tamaño de pantalla
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -48,6 +54,7 @@ export default function ClaseManagement() {
                 const data = await response.json();
                 dispatch({ type: 'SET_CLASSES', payload: data });
             } catch (error) {
+                showToast('Error al cargar las clases:', 'error');
                 console.error('Error al cargar las clases:', error);
             } finally {
                 setLoading(false);
@@ -56,6 +63,25 @@ export default function ClaseManagement() {
 
         fetchClasses();
     }, []);
+
+    const handleDeleteStudent = async (classId, studentId) => {
+        try {
+            await csrfFetch(`/api/classes/${classId}/students/${studentId}`, {
+                method: 'DELETE',
+            });
+            dispatch({
+                type: 'DELETE_STUDENT',
+                payload: { classId, studentId },
+            });
+        } catch (error) {
+            console.error('Error al eliminar el estudiante:', error);
+        }
+    };
+
+    const onOpenStudentModal = (classId) => {
+        setSelectedClassId(classId);
+        setIsStudentModalOpen(true);
+    };
 
     const handleAddStudent = async (studentData) => {
         try {
@@ -117,18 +143,34 @@ export default function ClaseManagement() {
     // Manejar el guardado de estudiantes
     const handleSaveStudent = async (studentData) => {
         try {
+            console.log("Entrando en el save...");
             const response = await csrfFetch(`/api/students`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(studentData),
             });
-            const newStudent = await response.json();
-            dispatch({ type: 'ADD_STUDENT', payload: newStudent });
+
+            // Extrae el estudiante correctamente
+            const { estudiante } = await response.json();
+            console.log('Estudiante recibido:', estudiante);
+
+            // Actualizar el estado de la clase correspondiente
+            dispatch({
+                type: 'ADD_STUDENT',
+                payload: {
+                    classId: studentData.clase_id,
+                    student: estudiante, // Usa el estudiante extraído
+                },
+            });
+
+            console.log('Estudiante añadido correctamente:', estudiante);
         } catch (error) {
             console.error('Error al guardar el estudiante:', error);
             alert('No se pudo guardar el estudiante.');
         }
     };
+
+
 
     // Alternar la asignación de un estudiante
     const toggleAssignment = async (classId, studentId) => {
@@ -152,9 +194,31 @@ export default function ClaseManagement() {
 
 
     const handleOpenStudentModal = (classId) => {
-        setSelectedClassId(classId); // Guarda el ID de la clase
-        setIsStudentModalOpen(true); // Abre el modal
+        console.log('ID de la clase recibido en el padre:', classId);
+        setSelectedClassId(classId);
+        setIsStudentModalOpen(true);
     };
+
+    const handleEditStudent = async (classId, editedStudent) => {
+        try {
+            console.log("Estudiante editado:", editedStudent, "Estudiante id:", editedStudent.studentId);
+            const response = await csrfFetch(`/api/students/${editedStudent.studentId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(editedStudent),
+            });
+
+            if (!response.ok) {
+                throw new Error('Error en la actualización.');
+            }
+
+            const updatedStudent = await response.json();
+            dispatch({ type: 'UPDATE_STUDENT', payload: updatedStudent });
+        } catch (error) {
+            console.error('Error al actualizar el estudiante:', error);
+        }
+    };
+
 
 
     const filteredClasses = classes.filter((cls) =>
@@ -165,6 +229,7 @@ export default function ClaseManagement() {
 
     return (
         <Container maxWidth="xl" className="h-full mb-8 mt-0">
+            <ToastManager ref={toastRef} />
             <Box sx={{ py: 4 }}>
                 <Paper
                     elevation={3}
@@ -246,15 +311,20 @@ export default function ClaseManagement() {
                 {classes.map((clase) => {
                     return (
                         <Grid item xs={12} sm={6} md={4} key={clase.id}>
-                            <ClassCard
-                                clase={clase}
-                                onOpenStudentModal={handleOpenStudentModal}
-                                onToggleAssignment={toggleAssignment}
+                            <StudentList
+                                clase={clase} // La clase actual
+                                estudiantes={clase.estudiantes || []} // Lista de estudiantes (asegúrate de que clase tenga estudiantes como array)
+                                orderBy={orderBy} // Si lo necesitas, aunque no se usa directamente aquí
+                                onToggleAssignment={toggleAssignment} // Función para alternar asignación de comedor
                                 onEditClass={(clase) => {
                                     setEditingClass(clase);
                                     setIsModalOpen(true);
-                                }}
-                                onDeleteClass={(clase) => handleDeleteClass(clase.id)}
+                                }} // Función para editar clase
+                                onDeleteClass={(clase) => handleDeleteClass(clase.id)} // Función para eliminar clase
+                                onDeleteStudent={handleDeleteStudent} // Función para eliminar un estudiante
+                                onEditStudent={handleEditStudent} // Función para guardar cambios de un estudiante
+                                onOpenStudentModal={handleOpenStudentModal} // Función para abrir el modal de añadir estudiante
+                                dispatch={dispatch} // Dispatch para manejar el estado global
                             />
 
                         </Grid>

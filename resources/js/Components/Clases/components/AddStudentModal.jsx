@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Dialog,
     DialogTitle,
@@ -19,12 +19,22 @@ const AddStudentModal = ({ open, onClose, onSave, classId }) => {
     const [formData, setFormData] = useState({
         nombre: '',
         apellidos: '',
-        clase_id: classId || '',
+        clase_id: '', // Inicialmente vacío
         pago: '',
         intolerancia_religion: [],
         intolerancia_especifica: '',
         beca: false,
     });
+
+    useEffect(() => {
+        if (classId) {
+            setFormData((prevData) => ({
+                ...prevData,
+                clase_id: classId,
+            }));
+        }
+    }, [classId]);
+
 
     const intoleranciaOptions = [
         'No Carne',
@@ -61,6 +71,7 @@ const AddStudentModal = ({ open, onClose, onSave, classId }) => {
             beca: false,
         });
         onClose();
+        
     };
 
     const handleChange = (e) => {
@@ -100,7 +111,7 @@ const AddStudentModal = ({ open, onClose, onSave, classId }) => {
                         />
                     </Grid>
 
-                    {/* Clase ID
+                    {/* Clase ID */}
                     <Grid item xs={12}>
                         <TextField
                             label="Clase ID"
@@ -110,7 +121,7 @@ const AddStudentModal = ({ open, onClose, onSave, classId }) => {
                             value={formData.clase_id}
                             disabled
                         />
-                    </Grid> */}
+                    </Grid>
 
                     {/* Pago */}
                     <Grid item xs={12}>
