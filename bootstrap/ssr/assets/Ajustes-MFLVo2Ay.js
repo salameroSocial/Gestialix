@@ -2,6 +2,7 @@ import { jsxs, jsx } from "react/jsx-runtime";
 import { useState } from "react";
 import { Inertia } from "@inertiajs/inertia";
 import { toast } from "react-toastify";
+import { c as csrfFetch } from "./csrfFetch-DJvw9o1x.js";
 import { A as AppLayout } from "./AppLayout-RoKqJet7.js";
 import "lucide-react";
 import "./apiClient-DgzgG0IP.js";
@@ -38,7 +39,7 @@ function Settings() {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await fetch("/api/user-profile/update", {
+      const response = await csrfFetch("/api/user-profile/update", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form)

@@ -19,6 +19,11 @@ class Estudiante extends Model
     {
         return $this->hasMany(Asistencia::class);
     }
+    public function getAsignadoComedorAttribute($value)
+    {
+        return (bool) $value; // Convierte 0/1 en false/true
+    }
+
     protected $casts = [
         'intolerancia_religion' => 'array', // Laravel convierte automáticamente JSON a array y viceversa
     ];

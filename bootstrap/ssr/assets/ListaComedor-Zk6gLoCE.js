@@ -2,6 +2,7 @@ import { jsx, jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Search, Check, X } from "lucide-react";
 import { Inertia } from "@inertiajs/inertia";
+import { c as csrfFetch } from "./csrfFetch-DJvw9o1x.js";
 const days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
 function ComedorAttendance({ initialData }) {
   var _a;
@@ -11,7 +12,7 @@ function ComedorAttendance({ initialData }) {
   useEffect(() => {
     const fetchAttendanceForDay = async (day) => {
       try {
-        const response = await fetch(`/api/attendance?day=${day}`);
+        const response = await csrfFetch(`/api/attendance?day=${day}`);
         const data = await response.json();
         setAttendanceData((prevData) => ({
           ...prevData,

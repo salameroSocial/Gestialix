@@ -31,8 +31,12 @@
         "vite": "^5.0"
     },
     "dependencies": {
+        "@emotion/react": "^11.13.5",
+        "@emotion/styled": "^11.13.5",
         "@inertiajs/inertia": "^0.11.1",
         "@inertiajs/inertia-react": "^0.8.1",
+        "@mui/icons-material": "^6.1.9",
+        "@mui/material": "^6.1.9",
         "@radix-ui/react-avatar": "^1.1.1",
         "@radix-ui/react-label": "^2.1.0",
         "@radix-ui/react-select": "^2.1.2",

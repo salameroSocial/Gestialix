@@ -5,6 +5,7 @@ import "@inertiajs/inertia";
 import "./Buttons-D9lSxtz5.js";
 import { ResponsiveContainer, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Line } from "recharts";
 import { S as Spinner, A as AppLayout } from "./AppLayout-RoKqJet7.js";
+import { c as csrfFetch } from "./csrfFetch-DJvw9o1x.js";
 import "framer-motion";
 import "@inertiajs/inertia-react";
 import "./apiClient-DgzgG0IP.js";
@@ -19,7 +20,7 @@ function Charts() {
   const [error, setError] = useState(null);
   const fetchClasses = async () => {
     try {
-      const response = await fetch("/api/classes");
+      const response = await csrfFetch("/api/classes");
       if (!response.ok) throw new Error("Error fetching classes");
       const data = await response.json();
       setClasses(data);
@@ -41,7 +42,7 @@ function Charts() {
         params.append("start_date", start2.toISOString().split("T")[0]);
         params.append("end_date", end2.toISOString().split("T")[0]);
       }
-      const response = await fetch(`/api/stats/asistencias?${params}`);
+      const response = await csrfFetch(`/api/stats/asistencias?${params}`);
       if (!response.ok) throw new Error("Error fetching attendance data");
       const data = await response.json();
       const formattedData = data.map((item) => ({
@@ -168,7 +169,7 @@ function StudentRegistrationsChart() {
     const fetchChartData = async () => {
       try {
         setLoading(true);
-        const response = await fetch("/api/stats/altasEstudiantes");
+        const response = await csrfFetch("/api/stats/altasEstudiantes");
         if (!response.ok) throw new Error("Error fetching registration data");
         const data = await response.json();
         const formattedData = data.map((item) => ({

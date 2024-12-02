@@ -1,9 +1,11 @@
 import { jsxs, jsx } from "react/jsx-runtime";
 import { S as Spinner, A as AppLayout } from "./AppLayout-RoKqJet7.js";
 import { useState, useEffect, useReducer } from "react";
-import { Edit, Trash2, ChevronDown, ChevronRight, Plus, Search } from "lucide-react";
-import { toast } from "react-toastify";
+import { Edit, Trash2, ChevronDown, ChevronUp, Trash, Plus, Search } from "lucide-react";
 import { motion } from "framer-motion";
+import { c as csrfFetch } from "./csrfFetch-DJvw9o1x.js";
+import { toast } from "react-toastify";
+import Select from "react-select";
 import "@inertiajs/inertia";
 import "./apiClient-DgzgG0IP.js";
 import "axios";
@@ -44,93 +46,111 @@ const ConfirmModal = ({ isOpen, onConfirm, onCancel, message }) => {
     ] })
   ] });
 };
-function EditStudentModal({ isOpen, onClose, onSave, initialData, title, fields }) {
-  const [formState, setFormState] = useState(initialData || {});
-  const [isSaving, setIsSaving] = useState(false);
+const intoleranciaOptions = [
+  { value: "no_carne", label: "No Carne" },
+  { value: "no_cerdo", label: "No Cerdo" },
+  { value: "celiaco", label: "Celíaco" },
+  { value: "lactosa", label: "Intolerante a la Lactosa" }
+];
+const EditModal = ({ isOpen, onClose, onSave, title, initialData, fields }) => {
+  const [formData, setFormData] = useState(initialData);
   useEffect(() => {
-    setFormState(initialData || {});
+    setFormData(initialData || {});
   }, [initialData]);
-  const handleInputChange = (e) => {
+  const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormState({
-      ...formState,
+    setFormData((prevData) => ({
+      ...prevData,
       [name]: type === "checkbox" ? checked : value
-    });
+    }));
   };
-  const handleSubmit = async (e) => {
+  const handleSelectChange = (selectedOptions) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      intolerancia_religion: selectedOptions.map((option) => option.value)
+    }));
+  };
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formState.id) {
-      toast.error("El ID del estudiante está ausente");
-      return;
-    }
-    setIsSaving(true);
-    try {
-      await onSave(formState);
-      toast.success("Datos del estudiante guardados correctamente");
-    } catch (error) {
-      toast.error(`Error al guardar los datos: ${error.message}`);
-    } finally {
-      setIsSaving(false);
-    }
+    onSave(formData);
   };
   if (!isOpen) return null;
-  return /* @__PURE__ */ jsxs("div", { className: "fixed inset-0 flex items-center justify-center z-50", children: [
-    /* @__PURE__ */ jsx("div", { className: "fixed inset-0 bg-black opacity-50", onClick: onClose }),
-    /* @__PURE__ */ jsxs("div", { className: "relative z-10 bg-white rounded-lg p-6 w-full max-w-md mx-auto shadow-lg", children: [
-      /* @__PURE__ */ jsx("h4", { className: "text-lg font-semibold mb-4", children: title || "Editar Estudiante" }),
-      /* @__PURE__ */ jsxs("form", { onSubmit: handleSubmit, className: "space-y-4", children: [
-        fields.map((field) => /* @__PURE__ */ jsxs("div", { children: [
-          /* @__PURE__ */ jsxs("label", { className: "block text-sm font-medium", children: [
-            field.label,
-            field.required && /* @__PURE__ */ jsx("span", { className: "text-red-500", children: "*" })
-          ] }),
-          field.type === "checkbox" ? /* @__PURE__ */ jsx(
+  return /* @__PURE__ */ jsx("div", { className: "fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full", children: /* @__PURE__ */ jsxs("div", { className: "relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white", children: [
+    /* @__PURE__ */ jsx("h3", { className: "text-lg font-medium leading-6 text-gray-900 mb-4", children: title }),
+    /* @__PURE__ */ jsxs("form", { onSubmit: handleSubmit, children: [
+      fields.map((field) => /* @__PURE__ */ jsxs("div", { className: "mb-4", children: [
+        /* @__PURE__ */ jsx("label", { htmlFor: field.name, className: "block text-sm font-medium text-gray-700", children: field.label }),
+        field.name === "intolerancia_religion" ? (
+          // Campo de selección múltiple
+          /* @__PURE__ */ jsx(
+            Select,
+            {
+              isMulti: true,
+              name: "intolerancia_religion",
+              options: intoleranciaOptions,
+              className: "basic-multi-select",
+              classNamePrefix: "select",
+              value: intoleranciaOptions.filter(
+                (option) => {
+                  var _a;
+                  return (_a = formData == null ? void 0 : formData.intolerancia_religion) == null ? void 0 : _a.includes(option.value);
+                }
+              ),
+              onChange: handleSelectChange
+            }
+          )
+        ) : field.type === "checkbox" ? (
+          // Campo de checkbox
+          /* @__PURE__ */ jsx(
             "input",
             {
               type: "checkbox",
+              id: field.name,
               name: field.name,
-              checked: !!formState[field.name],
-              onChange: handleInputChange,
-              className: "mt-1"
+              checked: formData[field.name] || false,
+              onChange: handleChange,
+              className: "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             }
-          ) : /* @__PURE__ */ jsx(
+          )
+        ) : (
+          // Campo de texto
+          /* @__PURE__ */ jsx(
             "input",
             {
               type: field.type,
+              id: field.name,
               name: field.name,
-              value: formState[field.name] || "",
-              onChange: handleInputChange,
-              placeholder: field.label,
-              className: "mt-1 p-2 border rounded w-full",
-              required: field.required
+              value: formData[field.name] || "",
+              onChange: handleChange,
+              required: field.required,
+              className: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
             }
           )
-        ] }, field.name)),
-        /* @__PURE__ */ jsxs("div", { className: "flex justify-end space-x-4", children: [
-          /* @__PURE__ */ jsx(
-            "button",
-            {
-              type: "button",
-              onClick: onClose,
-              className: "px-4 py-2 border rounded bg-gray-200 hover:bg-gray-300",
-              children: "Cancelar"
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            "button",
-            {
-              type: "submit",
-              disabled: isSaving,
-              className: `px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 ${isSaving ? "opacity-50 cursor-not-allowed" : ""}`,
-              children: isSaving ? "Guardando..." : "Guardar"
-            }
-          )
-        ] })
+        )
+      ] }, field.name)),
+      /* @__PURE__ */ jsxs("div", { className: "mt-4 flex justify-end", children: [
+        /* @__PURE__ */ jsx(
+          "button",
+          {
+            type: "button",
+            onClick: onClose,
+            className: "mr-2 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500",
+            children: "Cancelar"
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          "button",
+          {
+            type: "submit",
+            className: "inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500",
+            children: "Guardar"
+          }
+        )
       ] })
     ] })
-  ] });
-}
-const StudentTable = ({ students, onStudentDelete, toggleAssignment, onStudentEdit }) => {
+  ] }) });
+};
+const StudentTable = ({ students, onStudentEdit, toggleAssignment, onStudentDelete }) => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState(null);
@@ -158,17 +178,15 @@ const StudentTable = ({ students, onStudentDelete, toggleAssignment, onStudentEd
     setSelectedStudent(student);
     setIsEditModalOpen(true);
   };
-  const handleEditSave = async (updatedStudent) => {
+  const handleSave = async (updatedStudent) => {
     setLoading({ ...loading, editing: true });
     try {
-      await onStudentEdit(selectedStudent.id, updatedStudent);
-      toast.success("Estudiante actualizado correctamente");
+      await onStudentEdit(updatedStudent);
     } catch (error) {
-      toast.error(`Error al editar estudiante: ${error.message}`);
+      console.error("Error al guardar estudiante:", error);
     } finally {
       setLoading({ ...loading, editing: false });
       setIsEditModalOpen(false);
-      setSelectedStudent(null);
     }
   };
   return /* @__PURE__ */ jsxs("div", { className: "mt-2 bg-gray-50 dark:bg-gray-800 rounded-lg p-4", children: [
@@ -223,16 +241,15 @@ const StudentTable = ({ students, onStudentDelete, toggleAssignment, onStudentEd
         message: "¿Estás seguro de que quieres eliminar este estudiante?"
       }
     ),
-    isEditModalOpen && selectedStudent && /* @__PURE__ */ jsx(
-      EditStudentModal,
+    selectedStudent && /* @__PURE__ */ jsx(
+      EditModal,
       {
         isOpen: isEditModalOpen,
         onClose: () => setIsEditModalOpen(false),
-        onSave: handleEditSave,
+        onSave: handleSave,
         title: "Editar Estudiante",
         initialData: {
           id: selectedStudent.id,
-          // Asegúrate de pasar el ID
           nombre: selectedStudent.nombre,
           apellidos: selectedStudent.apellidos,
           intolerancia_religion: selectedStudent.intolerancia_religion,
@@ -244,7 +261,7 @@ const StudentTable = ({ students, onStudentDelete, toggleAssignment, onStudentEd
           {
             name: "intolerancia_religion",
             label: "Intolerancia/Religión",
-            type: "text"
+            type: "select"
           },
           { name: "beca", label: "Beca", type: "checkbox" }
         ]
@@ -252,7 +269,15 @@ const StudentTable = ({ students, onStudentDelete, toggleAssignment, onStudentEd
     )
   ] });
 };
-const ClassItem = ({ classData, isOpen, onToggle, onEdit, onDelete, toggleAssignment }) => {
+const ClassItem = ({
+  classData,
+  isOpen,
+  onToggle,
+  onEdit,
+  onDelete,
+  toggleAssignment
+}) => {
+  var _a;
   const [isAddingStudent, setIsAddingStudent] = useState(false);
   const [newStudent, setNewStudent] = useState({
     nombre: "",
@@ -268,35 +293,9 @@ const ClassItem = ({ classData, isOpen, onToggle, onEdit, onDelete, toggleAssign
       [name]: type === "checkbox" ? checked : value
     });
   };
-  const handleAddStudent = async () => {
-    if (!newStudent.nombre || !newStudent.apellidos) {
-      console.error("El nombre y apellidos son obligatorios");
-      return;
-    }
-    try {
-      const response = await fetch(`/api/classes/${classData.id}/students`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(newStudent)
-      });
-      if (!response.ok) {
-        throw new Error("Error adding student");
-      }
-      const addedStudent = await response.json();
-      const updatedStudents = [...classData.estudiantes || [], addedStudent];
-      onToggle(classData.id);
-      classData.estudiantes = updatedStudents;
-      setIsAddingStudent(false);
-      setNewStudent({ nombre: "", apellidos: "", intolerancia_religion: "", beca: false });
-    } catch (error) {
-      console.error("Error adding student:", error);
-    }
-  };
   const handleStudentDelete = async (studentId) => {
     try {
-      const response = await fetch(`/api/classes/${classData.id}/students/${studentId}`, {
+      const response = await csrfFetch(`/api/classes/${classData.id}/students/${studentId}`, {
         method: "DELETE"
       });
       if (!response.ok) {
@@ -311,80 +310,127 @@ const ClassItem = ({ classData, isOpen, onToggle, onEdit, onDelete, toggleAssign
       console.error("Error deleting student:", error);
     }
   };
-  const handleStudentEdit = async (studentId, updatedData) => {
+  const handleEditSave = async (updatedStudent) => {
+    console.log("Datos enviados al backend:", updatedStudent);
     try {
-      const response = await fetch(`/api/students/${studentId}`, {
+      const response = await csrfFetch(`/api/students/${updatedStudent.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(updatedData)
+        body: JSON.stringify(updatedStudent)
+        // O usar directamente updatedStudent si el backend acepta arrays
       });
       if (!response.ok) {
-        throw new Error("Error updating student");
+        throw new Error("Error al actualizar el estudiante");
       }
-      const updatedStudent = await response.json();
-      const updatedStudents = classData.estudiantes.map(
-        (student) => student.id === studentId ? updatedStudent : student
+      const updatedData = await response.json();
+      setStudents(
+        (prevStudents) => prevStudents.map(
+          (student) => student.id === updatedData.id ? updatedData : student
+        )
       );
-      onToggle(classData.id);
-      classData.estudiantes = updatedStudents;
+      toast.success("Estudiante actualizado correctamente");
     } catch (error) {
-      console.error("Error updating student:", error);
+      console.error("Error al guardar:", error);
+      toast.error("No se pudo guardar el estudiante");
+    }
+  };
+  const handleAddStudent = async () => {
+    if (!newStudent.nombre || !newStudent.apellidos) {
+      console.error("El nombre y apellidos son obligatorios");
+      return;
+    }
+    try {
+      const response = await csrfFetch(`/api/classes/${classData.id}/students`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newStudent)
+      });
+      if (!response.ok) throw new Error("Error al añadir estudiante");
+      const addedStudent = await response.json();
+      classData.estudiantes = [...classData.estudiantes || [], addedStudent];
+      setIsAddingStudent(false);
+      setNewStudent({ nombre: "", apellidos: "", intolerancia_religion: "", beca: false });
+    } catch (error) {
+      console.error("Error al añadir estudiante:", error);
     }
   };
   return /* @__PURE__ */ jsxs("div", { className: "mb-4", children: [
-    /* @__PURE__ */ jsxs("div", { className: "bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 flex items-center justify-between", children: [
-      /* @__PURE__ */ jsxs("div", { onClick: onToggle, className: "flex items-center relative", children: [
-        /* @__PURE__ */ jsx("button", { className: "mr-2", children: isOpen ? /* @__PURE__ */ jsx(ChevronDown, { className: "w-5 h-5" }) : /* @__PURE__ */ jsx(ChevronRight, { className: "w-5 h-5" }) }),
-        /* @__PURE__ */ jsx("h3", { className: "text-lg text-blue-500 font-semibold ", children: classData.nombre }),
-        /* @__PURE__ */ jsxs("span", { className: "ml-2 text-sm text-orange-500 hidden sm:inline", children: [
-          "(",
-          classData.estudiantes ? classData.estudiantes.length : 0,
-          " alumnos)"
-        ] }),
-        /* @__PURE__ */ jsxs("span", { className: "ml-2 text-sm text-green-500 hidden sm:inline", children: [
-          "(",
-          classData.curso_academico || "N/D",
-          ")"
-        ] })
-      ] }),
-      /* @__PURE__ */ jsxs("div", { className: "flex flex-wrap space-x-2", children: [
-        /* @__PURE__ */ jsx("button", { onClick: () => onEdit(classData), className: "p-1 hover:bg-gray-100 rounded-full", children: /* @__PURE__ */ jsx(Edit, { className: "w-5 h-5 text-blue-500" }) }),
-        /* @__PURE__ */ jsx(
-          "button",
-          {
-            onClick: () => setIsDeleteModalOpen(true),
-            className: "p-1 hover:bg-gray-100 rounded-full",
-            children: /* @__PURE__ */ jsx(Trash2, { className: "w-5 h-5 text-red-500" })
-          }
-        ),
-        /* @__PURE__ */ jsx(
-          ConfirmModal,
-          {
-            isOpen: isDeleteModalOpen,
-            onConfirm: () => onDelete(classData.id),
-            onCancel: () => setIsDeleteModalOpen(false),
-            message: "¿Estás seguro de que quieres eliminar esta clase?"
-          }
-        ),
-        /* @__PURE__ */ jsx(
-          "button",
-          {
-            onClick: () => setIsAddingStudent(true),
-            className: "p-1 hover:bg-gray-100 rounded-full",
-            children: /* @__PURE__ */ jsx(Plus, { className: "w-5 h-5 text-green-500" })
-          }
-        )
-      ] })
-    ] }),
+    /* @__PURE__ */ jsxs(
+      "div",
+      {
+        className: "bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 flex items-center justify-between cursor-pointer",
+        onClick: onToggle,
+        children: [
+          /* @__PURE__ */ jsxs("div", { className: "flex items-center", children: [
+            /* @__PURE__ */ jsx("button", { className: "mr-2", children: isOpen ? /* @__PURE__ */ jsx(ChevronDown, { className: "w-5 h-5" }) : /* @__PURE__ */ jsx(ChevronUp, { className: "w-5 h-5" }) }),
+            /* @__PURE__ */ jsx("h3", { className: "text-lg text-blue-500 font-semibold", children: classData.nombre }),
+            /* @__PURE__ */ jsxs("span", { className: "ml-2 text-sm text-orange-500 hidden sm:inline", children: [
+              "(",
+              classData.estudiantes ? classData.estudiantes.length : 0,
+              " alumnos)"
+            ] }),
+            /* @__PURE__ */ jsxs("span", { className: "ml-2 text-sm text-green-500 hidden sm:inline", children: [
+              "(",
+              classData.curso_academico || "N/D",
+              ")"
+            ] })
+          ] }),
+          /* @__PURE__ */ jsxs("div", { className: "flex flex-wrap space-x-2", children: [
+            /* @__PURE__ */ jsx(
+              "button",
+              {
+                onClick: (e) => {
+                  e.stopPropagation();
+                  onEdit(classData);
+                },
+                className: "p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full",
+                children: /* @__PURE__ */ jsx(Edit, { className: "w-5 h-5 text-blue-500" })
+              }
+            ),
+            /* @__PURE__ */ jsx(
+              "button",
+              {
+                onClick: (e) => {
+                  e.stopPropagation();
+                  setIsDeleteModalOpen(true);
+                },
+                className: "p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full",
+                children: /* @__PURE__ */ jsx(Trash, { className: "w-5 h-5 text-red-500" })
+              }
+            ),
+            /* @__PURE__ */ jsx(
+              ConfirmModal,
+              {
+                isOpen: isDeleteModalOpen,
+                onConfirm: () => onDelete(classData.id),
+                onCancel: () => setIsDeleteModalOpen(false),
+                message: "¿Estás seguro de que quieres eliminar esta clase?"
+              }
+            ),
+            /* @__PURE__ */ jsx(
+              "button",
+              {
+                onClick: (e) => {
+                  e.stopPropagation();
+                  setIsAddingStudent(true);
+                },
+                className: "p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full",
+                children: /* @__PURE__ */ jsx(Plus, { className: "w-5 h-5 text-green-500" })
+              }
+            )
+          ] })
+        ]
+      }
+    ),
     isOpen && /* @__PURE__ */ jsx("div", { className: "overflow-x-auto", children: /* @__PURE__ */ jsx(
       StudentTable,
       {
         students: classData.estudiantes || [],
         onStudentDelete: handleStudentDelete,
         toggleAssignment,
-        onStudentEdit: handleStudentEdit
+        onEditSave: handleEditSave
       }
     ) }),
     isAddingStudent && /* @__PURE__ */ jsxs(
@@ -402,7 +448,7 @@ const ClassItem = ({ classData, isOpen, onToggle, onEdit, onDelete, toggleAssign
               onClick: () => setIsAddingStudent(false)
             }
           ),
-          /* @__PURE__ */ jsxs(motion.div, { className: "relative z-10 bg-white rounded-lg p-6 w-full max-w-md mx-auto shadow-lg", children: [
+          /* @__PURE__ */ jsxs(motion.div, { className: "relative z-10 bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-auto shadow-lg", children: [
             /* @__PURE__ */ jsx("h4", { className: "text-lg font-semibold mb-2", children: "Añadir Nuevo Estudiante" }),
             /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
               /* @__PURE__ */ jsx(
@@ -427,15 +473,63 @@ const ClassItem = ({ classData, isOpen, onToggle, onEdit, onDelete, toggleAssign
                   className: "w-full p-2 border rounded"
                 }
               ),
-              /* @__PURE__ */ jsx(
+              /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700 dark:text-gray-300", children: "Intolerancias:" }),
+              /* @__PURE__ */ jsx("div", { className: "space-y-1", children: [
+                { value: "no_carne", label: "No Carne" },
+                { value: "no_credo", label: "No Credo" },
+                { value: "celiaco", label: "Celiaco" },
+                { value: "lactosa", label: "Lactosa" },
+                { value: "otros", label: "Otros (Especificar abajo)" }
+              ].map((option) => {
+                var _a2;
+                return /* @__PURE__ */ jsxs(
+                  "label",
+                  {
+                    className: "flex items-center space-x-2",
+                    children: [
+                      /* @__PURE__ */ jsx(
+                        "input",
+                        {
+                          type: "checkbox",
+                          value: option.value,
+                          checked: (_a2 = newStudent.intolerancia_religion) == null ? void 0 : _a2.includes(option.value),
+                          onChange: (e) => {
+                            const isChecked = e.target.checked;
+                            const currentSelections = newStudent.intolerancia_religion || [];
+                            setNewStudent({
+                              ...newStudent,
+                              intolerancia_religion: isChecked ? [...currentSelections, option.value] : currentSelections.filter((item) => item !== option.value)
+                            });
+                          },
+                          className: "form-checkbox"
+                        }
+                      ),
+                      /* @__PURE__ */ jsx("span", { children: option.label })
+                    ]
+                  },
+                  option.value
+                );
+              }) }),
+              ((_a = newStudent.intolerancia_religion) == null ? void 0 : _a.includes("otros")) && /* @__PURE__ */ jsx(
                 "input",
                 {
                   type: "text",
-                  name: "intolerancia_religion",
-                  value: newStudent.intolerancia_religion,
-                  onChange: handleInputChange,
-                  placeholder: "Intolerancia/Religión",
-                  className: "w-full p-2 border rounded"
+                  name: "otros",
+                  placeholder: "Especificar otras intolerancias",
+                  className: "w-full p-2 border rounded mt-2",
+                  onChange: (e) => {
+                    const otrosValue = e.target.value;
+                    e.preventDefault();
+                    setNewStudent({
+                      ...newStudent,
+                      intolerancia_religion: [
+                        ...newStudent.intolerancia_religion.filter(
+                          (item) => item !== "otros"
+                        ),
+                        otrosValue
+                      ]
+                    });
+                  }
                 }
               ),
               /* @__PURE__ */ jsxs("label", { className: "flex items-center", children: [
@@ -464,7 +558,7 @@ const ClassItem = ({ classData, isOpen, onToggle, onEdit, onDelete, toggleAssign
                   "button",
                   {
                     onClick: () => setIsAddingStudent(false),
-                    className: "bg-gray-300 px-4 py-2 rounded",
+                    className: "bg-gray-300 dark:bg-gray-600 px-4 py-2 rounded",
                     children: "Cancelar"
                   }
                 )
@@ -579,10 +673,17 @@ function ClaseManagement() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  useEffect(() => {
+    if (!isEditModalOpen) {
+      setEditingClass(null);
+      setSelectedStudent(null);
+    }
+  }, [isEditModalOpen]);
   useEffect(() => {
     const fetchClasses = async () => {
       try {
-        const response = await fetch("/api/classes");
+        const response = await csrfFetch("/api/classes");
         const data = await response.json();
         dispatch({ type: "SET_CLASSES", payload: data });
       } catch (error2) {
@@ -599,9 +700,8 @@ function ClaseManagement() {
   };
   const handleAddClass = async (classData) => {
     try {
-      const response = await fetch("/api/classes/new", {
+      const response = await csrfFetch("/api/classes/new", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           nombre: classData.name,
           curso_academico: classData.academicYear
@@ -618,7 +718,7 @@ function ClaseManagement() {
   };
   const handleEditClass = async (updatedClass) => {
     try {
-      const response = await fetch(`/api/classes/${updatedClass.id}`, {
+      const response = await csrfFetch(`/api/classes/${updatedClass.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedClass)
@@ -632,9 +732,22 @@ function ClaseManagement() {
       console.error(error2);
     }
   };
+  const handleEditStudent = async (updatedStudent) => {
+    try {
+      const response = await csrfFetch(`/api/students/${updatedStudent.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedStudent)
+      });
+      if (!response.ok) throw new Error("Error al actualizar el estudiante");
+      dispatch({ type: "UPDATE_STUDENT", payload: updatedStudent });
+    } catch (error2) {
+      console.error("Error al guardar el estudiante:", error2);
+    }
+  };
   const handleDeleteClass = async (classId) => {
     try {
-      const response = await fetch(`/api/classes/${classId}`, {
+      const response = await csrfFetch(`/api/classes/${classId}`, {
         method: "DELETE"
       });
       if (!response.ok) throw new Error("Error al eliminar la clase");
@@ -646,22 +759,20 @@ function ClaseManagement() {
   };
   const toggleAssignment = async (classId, studentId) => {
     try {
-      const response = await fetch(`/api/students/${studentId}/toggle-assignment`, {
+      const response = await csrfFetch(`/api/students/${studentId}/toggle-assignment`, {
         method: "PATCH"
       });
       if (!response.ok) throw new Error("Error al guardar el cambio en el backend");
       const updatedStudent = await response.json();
       dispatch({
         type: "UPDATE_STUDENT",
-        payload: { classId, updatedStudent }
+        payload: {
+          classId,
+          updatedStudent
+        }
       });
     } catch (error2) {
       console.error("Error al asignar/desasignar en el backend:", error2);
-      dispatch({
-        type: "TOGGLE_ASSIGNMENT",
-        payload: { classId, studentId, loading: false }
-        // Revertir estado de "Cargando..."
-      });
     }
   };
   const filteredClasses = classes.filter(
@@ -727,27 +838,23 @@ function ClaseManagement() {
       }
     ),
     isEditModalOpen && editingClass && /* @__PURE__ */ jsx(
-      EditStudentModal,
+      AddEditClassModal,
       {
         isOpen: isEditModalOpen,
         onClose: () => setIsEditModalOpen(false),
         onSave: handleEditClass,
         title: "Editar Clase",
-        initialData: editingClass,
-        fields: [
-          {
-            name: "nombre",
-            label: "Nombre de la Clase",
-            type: "text",
-            required: true
-          },
-          {
-            name: "curso_academico",
-            label: "Año Académico",
-            type: "text",
-            required: true
-          }
-        ]
+        initialData: editingClass
+      }
+    ),
+    isEditModalOpen && selectedStudent && /* @__PURE__ */ jsx(
+      EditModal,
+      {
+        isOpen: isEditModalOpen,
+        onClose: () => setIsEditModalOpen(false),
+        onSave: (updatedStudent) => handleEditStudent(updatedStudent),
+        title: "Editar Estudiante",
+        initialData: selectedStudent
       }
     )
   ] }) });

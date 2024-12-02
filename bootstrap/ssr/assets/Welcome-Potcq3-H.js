@@ -5,6 +5,7 @@ import { Users, Utensils, Check } from "lucide-react";
 import { B as Button } from "./Buttons-D9lSxtz5.js";
 import { F as Footer } from "./footer-BJKdI4B5.js";
 import { L as Logo } from "./Logo-BI89IjeP.js";
+import "@inertiajs/react";
 import "@inertiajs/inertia-react";
 function WordSlider({ words, interval = 3e3 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -29,14 +30,14 @@ function WordSlider({ words, interval = 3e3 }) {
     index
   )) });
 }
-function LandingPage() {
+function LandingPage(auth, laravelVersion, phpVersion) {
   return /* @__PURE__ */ jsxs("div", { className: "min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex flex-col", children: [
     /* @__PURE__ */ jsx("header", { className: "bg-white shadow-md", children: /* @__PURE__ */ jsx("nav", { className: "container mx-auto px-4 sm:px-6 lg:px-8", children: /* @__PURE__ */ jsxs("div", { className: "flex justify-between items-center py-4", children: [
       /* @__PURE__ */ jsxs("div", { className: "flex items-center", children: [
         /* @__PURE__ */ jsx(Logo, { showText: false, sizeW: 10, sizeH: 10 }),
         /* @__PURE__ */ jsx("h1", { className: "ml-4 text-2xl sm:text-3xl font-bold text-gray-700", children: "Gestialix" })
       ] }),
-      /* @__PURE__ */ jsxs("div", { className: "flex items-center space-x-4 sm:space-x-6", children: [
+      /* @__PURE__ */ jsx("nav", { className: "-mx-3 flex flex-1 justify-end", children: /* @__PURE__ */ jsxs("div", { className: "flex items-center space-x-4 sm:space-x-6", children: [
         /* @__PURE__ */ jsx(
           "a",
           {
@@ -53,7 +54,7 @@ function LandingPage() {
             className: "px-5 py-2 text-white bg-green-600 hover:bg-green-700 rounded-md"
           }
         )
-      ] })
+      ] }) })
     ] }) }) }),
     /* @__PURE__ */ jsxs("main", { className: "flex-grow", children: [
       /* @__PURE__ */ jsxs(

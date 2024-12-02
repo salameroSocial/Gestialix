@@ -1,336 +1,279 @@
-import React, { useState, useEffect, useReducer } from 'react';
-import { Plus, Search } from 'lucide-react';
-import ClassItem from './components/ClassItem';
+import React, { useState, useReducer, useEffect } from 'react';
+import SearchIcon from '@mui/icons-material/Search';
+import AddIcon from '@mui/icons-material/Add';
+import ClassCard from './components/Clase';
 import AddEditClassModal from './components/AddEditClassModal';
-import EditStudentModal from './components/EditStudentModal';
-import Spinner from '../ui/Spinner';
+import AddStudentModal from './components/AddStudentModal';
 import csrfFetch from '@/utils/csrfFetch';
-
-// Reducer para manejar el estado de las clases
-const classesReducer = (state, action) => {
-    switch (action.type) {
-        case 'SET_CLASSES':
-            return action.payload;
-        case 'ADD_CLASS':
-            return [...state, action.payload];
-        case 'UPDATE_CLASS':
-            return state.map((cls) =>
-                cls.id === action.payload.id ? action.payload : cls
-            );
-        case 'DELETE_CLASS':
-            return state.filter((cls) => cls.id !== action.payload);
-        case 'UPDATE_STUDENTS':
-            return state.map((cls) =>
-                cls.id === action.payload.classId
-                    ? { ...cls, estudiantes: action.payload.students }
-                    : cls
-            );
-        case 'TOGGLE_ASSIGNMENT':
-            return state.map((cls) =>
-                cls.id === action.payload.classId
-                    ? {
-                        ...cls,
-                        estudiantes: cls.estudiantes.map((student) =>
-                            student.id === action.payload.studentId
-                                ? {
-                                    ...student,
-                                    asignado: !student.asignado,
-                                    loading: action.payload.loading || false,
-                                }
-                                : student
-                        ),
-                    }
-                    : cls
-            );
-        case 'UPDATE_STUDENT':
-            return state.map((cls) =>
-                cls.id === action.payload.classId
-                    ? {
-                        ...cls,
-                        estudiantes: cls.estudiantes.map((student) =>
-                            student.id === action.payload.updatedStudent.id
-                                ? action.payload.updatedStudent
-                                : student
-                        ),
-                    }
-                    : cls
-            );
-
-        default:
-            return state;
-    }
-
-};
-
-
-
+import classesReducer from './reducers/classesReducer';
+import {
+    Box,
+    Paper,
+    Typography,
+    Grid,
+    TextField,
+    InputAdornment,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+    Button,
+    Container,
+} from '@mui/material';
+import SortIcon from '@mui/icons-material/Sort';
 
 export default function ClaseManagement() {
     const [classes, dispatch] = useReducer(classesReducer, []);
-    const [openClassId, setOpenClassId] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
-    const [isAddingClass, setIsAddingClass] = useState(false);
-    const [editingClass, setEditingClass] = useState(null);
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [selectedStudent, setSelectedStudent] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingClass, setEditingClass] = useState(null);
+    const [orderBy, setOrderBy] = useState('nombre'); // Nombre por defecto
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+    const [isStudentModalOpen, setIsStudentModalOpen] = useState(false);
+    const [selectedClassId, setSelectedClassId] = useState(null);
 
+    // Escucha para detectar cambios en el tamaño de pantalla
     useEffect(() => {
-        if (!isEditModalOpen) {
-            setEditingClass(null);
-            setSelectedStudent(null);
-        }
-    }, [isEditModalOpen]);
+        const handleResize = () => setIsMobile(window.innerWidth <= 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
-
+    // Cargar las clases desde el backend
     useEffect(() => {
-
         const fetchClasses = async () => {
             try {
                 const response = await csrfFetch('/api/classes');
                 const data = await response.json();
                 dispatch({ type: 'SET_CLASSES', payload: data });
             } catch (error) {
-                setError('No se pudieron cargar las clases');
-                console.error(error);
+                console.error('Error al cargar las clases:', error);
             } finally {
                 setLoading(false);
             }
         };
+
         fetchClasses();
     }, []);
 
-    const handleToggleClass = (classId) => {
-        setOpenClassId(openClassId === classId ? null : classId);
-    };
-
-    const handleAddClass = async (classData) => {
+    const handleAddStudent = async (studentData) => {
         try {
-            const response = await csrfFetch('/api/classes/new', {
+            const response = await csrfFetch('/api/students', {
                 method: 'POST',
-                body: JSON.stringify({
-                    nombre: classData.name,
-                    curso_academico: classData.academicYear,
-                }),
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...studentData, clase_id: selectedClassId }),
             });
-            if (!response.ok) throw new Error('Error al añadir la clase');
-            const newClass = await response.json();
-            dispatch({ type: 'ADD_CLASS', payload: newClass });
-            setIsAddingClass(false);
+            const newStudent = await response.json();
+
+            // Actualiza el estado global con el nuevo estudiante
+            dispatch({
+                type: 'ADD_STUDENT',
+                payload: { classId: selectedClassId, student: newStudent },
+            });
         } catch (error) {
-            setError('No se pudo añadir la clase');
-            console.error(error);
+            console.error('Error al añadir estudiante:', error);
+        } finally {
+            setIsStudentModalOpen(false); // Cierra el modal después de añadir
         }
     };
 
-
-
-
-
-    const handleEditClass = async (updatedClass) => {
+    // Manejar la creación/edición de clases
+    const handleSaveClass = async (clase) => {
         try {
-            const response = await csrfFetch(`/api/classes/${updatedClass.id}`, {
-                method: 'PUT',
+            console.log("clase", clase)
+            const method = editingClass ? 'PUT' : 'POST';
+            const endpoint = editingClass ? `/api/classes/${clase.id}` : '/api/classes/new';
+
+            const response = await csrfFetch(endpoint, {
+                method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedClass),
+                body: JSON.stringify(clase),
             });
 
-            if (!response.ok) throw new Error('Error al editar la clase');
+            const updatedClass = await response.json();
+            dispatch({
+                type: editingClass ? 'UPDATE_CLASS' : 'ADD_CLASS',
+                payload: updatedClass,
+            });
 
-            dispatch({ type: 'UPDATE_CLASS', payload: updatedClass });
+            setIsModalOpen(false);
             setEditingClass(null);
-            setIsEditModalOpen(false);
         } catch (error) {
-            setError('No se pudo editar la clase');
-            console.error(error);
+            console.error('Error al guardar la clase:', error);
         }
     };
 
-    const handleEditStudent = async (updatedStudent) => {
-        try {
-            const response = await csrfFetch(`/api/students/${updatedStudent.id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedStudent),
-            });
-
-            if (!response.ok) throw new Error('Error al actualizar el estudiante');
-
-            dispatch({ type: 'UPDATE_STUDENT', payload: updatedStudent });
-        } catch (error) {
-            console.error('Error al guardar el estudiante:', error);
-        }
-    };
-
-
-
+    // Manejar la eliminación de una clase
     const handleDeleteClass = async (classId) => {
         try {
-            const response = await csrfFetch(`/api/classes/${classId}`, {
-                method: 'DELETE',
-            });
-            if (!response.ok) throw new Error('Error al eliminar la clase');
+            await csrfFetch(`/api/classes/${classId}`, { method: 'DELETE' });
             dispatch({ type: 'DELETE_CLASS', payload: classId });
         } catch (error) {
-            setError('No se pudo eliminar la clase');
-            console.error(error);
+            console.error('Error al eliminar la clase:', error);
         }
     };
 
+    // Manejar el guardado de estudiantes
+    const handleSaveStudent = async (studentData) => {
+        try {
+            const response = await csrfFetch(`/api/students`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(studentData),
+            });
+            const newStudent = await response.json();
+            dispatch({ type: 'ADD_STUDENT', payload: newStudent });
+        } catch (error) {
+            console.error('Error al guardar el estudiante:', error);
+            alert('No se pudo guardar el estudiante.');
+        }
+    };
+
+    // Alternar la asignación de un estudiante
     const toggleAssignment = async (classId, studentId) => {
         try {
             const response = await csrfFetch(`/api/students/${studentId}/toggle-assignment`, {
                 method: 'PATCH',
             });
 
-            if (!response.ok) throw new Error('Error al guardar el cambio en el backend');
-
-            const updatedStudent = await response.json();
-
-            dispatch({
-                type: 'UPDATE_STUDENT',
-                payload: {
-                    classId,
-                    updatedStudent,
-                },
-            });
+            if (response.status === 200) {
+                const { asignado } = await response.json();
+                dispatch({
+                    type: 'TOGGLE_ASSIGNMENT',
+                    payload: { classId, studentId, asignado },
+                });
+            }
         } catch (error) {
-            console.error('Error al asignar/desasignar en el backend:', error);
+            console.error('Error al alternar el estado de asignación:', error);
+            alert('No se pudo alternar el estado de asignación.');
         }
     };
 
-    // funcion vieja
-    // const toggleAssignment = async (classId, studentId) => {
-    //     try {
-    //         const response = await csrfFetch(`/api/students/${studentId}/toggle-assignment`, {
-    //             method: 'PATCH',
-    //         });
 
-    //         if (!response.ok) throw new Error('Error al guardar el cambio en el backend');
+    const handleOpenStudentModal = (classId) => {
+        setSelectedClassId(classId); // Guarda el ID de la clase
+        setIsStudentModalOpen(true); // Abre el modal
+    };
 
-    //         const updatedStudent = await response.json(); // El backend devuelve el estudiante actualizado
 
-    //         // Actualizar el estado local con los datos del backend
-    //         dispatch({
-    //             type: 'UPDATE_STUDENT',
-    //             payload: { classId, updatedStudent },
-    //         });
-    //     } catch (error) {
-    //         console.error('Error al asignar/desasignar en el backend:', error);
-
-    //         // Revertir cambios locales en caso de error
-    //         dispatch({
-    //             type: 'TOGGLE_ASSIGNMENT',
-    //             payload: { classId, studentId, loading: false }, // Revertir estado de "Cargando..."
-    //         });
-    //     }
-    // };
-
-    const filteredClasses = classes.filter(
-        (cls) =>
-            cls.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            cls.estudiantes?.some((estudiante) =>
-                estudiante.nombre?.toLowerCase().includes(searchTerm.toLowerCase())
-            )
+    const filteredClasses = classes.filter((cls) =>
+        cls.nombre.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    console.log('Clases filtradas:', filteredClasses);
+
     return (
-        <div className="min-h-screen bg-gray-100 dark:bg-gray-700 py-12 px-4 sm:px-6 lg:px-8 p-8">
-            <div className="max-w-6xl mx-auto">
-                <h1 className="text-3xl font-bold mb-8 text-gray-800 dark:text-white">Gestión de Clases</h1>
-                {error && <div className="bg-red-500 text-white p-2 rounded">{error}</div>}
-                <div className="mb-6 flex justify-between items-center">
-                    <div className="relative">
-                        <input
-                            type="text"
-                            placeholder="Buscar clases o alumnos..."
-                            className="pl-10 pr-4 py-2 border rounded-lg"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                        <Search className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
-                    </div>
-                    <button
-                        onClick={() => setIsAddingClass(true)}
-                        className="bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center"
+        <Container maxWidth="xl" className="h-full mb-8 mt-0">
+            <Box sx={{ py: 4 }}>
+                <Paper
+                    elevation={3}
+                    sx={{
+                        p: { xs: 2, sm: 4 },
+                        backgroundColor: 'background.default', // Usa tokens de color del tema
+                        borderRadius: 2,
+                    }}
+                >
+                    <Typography
+                        variant="h4"
+                        component="h1"
+                        align="center"
+                        gutterBottom
+                        sx={{
+                            fontWeight: 'bold',
+                            color: 'primary.main', // Usa tokens de color del tema
+                            mb: 4,
+                        }}
                     >
-                        <Plus className="w-5 h-5" />
-                        <span className="hidden sm:inline ml-2">Añadir Clase</span>
-                    </button>
-                </div>
-                {loading ? (
-                    <Spinner></Spinner>
-                ) : filteredClasses.length > 0 ? (
-                    filteredClasses.map((classData) => (
-                        <ClassItem
-                            key={classData.id}
-                            classData={classData}
-                            isOpen={openClassId === classData.id}
-                            onToggle={() => handleToggleClass(classData.id)}
-                            onEdit={(classData) => {
-                                setEditingClass(classData);
-                                setIsEditModalOpen(true);
-                            }}
-                            onDelete={handleDeleteClass}
-                            toggleAssignment={(studentId) => toggleAssignment(classData.id, studentId)}
-                        />
-                    ))
-                ) : (
-                    <p className="text-center text-gray-500">No hay clases disponibles</p>
-                )}
-                {isAddingClass && (
-                    <AddEditClassModal
-                        onSave={handleAddClass}
-                        onClose={() => setIsAddingClass(false)}
-                    />
-                )}
-                {/* {isEditModalOpen && editingClass && (
-                    <EditStudentModal
-                        isOpen={isEditModalOpen}
-                        onClose={() => setIsEditModalOpen(false)}
-                        onSave={handleEditClass}
-                        title="Editar Clase"
-                        initialData={editingClass}
-                        fields={[
-                            {
-                                name: 'nombre',
-                                label: 'Nombre de la Clase',
-                                type: 'text',
-                                required: true,
-                            },
-                            {
-                                name: 'curso_academico',
-                                label: 'Año Académico',
-                                type: 'text',
-                                required: true,
-                            },
-                        ]}
-                    />
-                )} */}
-                {isEditModalOpen && editingClass && (
-                    <AddEditClassModal
-                        isOpen={isEditModalOpen}
-                        onClose={() => setIsEditModalOpen(false)}
-                        onSave={handleEditClass}
-                        title="Editar Clase"
-                        initialData={editingClass}
-                    />
-                )}
+                        Gestión de Clases
+                    </Typography>
 
-                {isEditModalOpen && selectedStudent && (
-                    <EditStudentModal
-                        isOpen={isEditModalOpen}
-                        onClose={() => setIsEditModalOpen(false)}
-                        onSave={(updatedStudent) =>
-                            handleEditStudent(updatedStudent, openClassId)
-                        }
-                        title="Editar Estudiante"
-                        initialData={selectedStudent}
-                    />
-                )}
+                    <Grid container spacing={3} alignItems="stretch">
+                        <Grid item xs={12} md={6}>
+                            <TextField
+                                fullWidth
+                                placeholder="Buscar clases..."
+                                variant="outlined"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <SearchIcon color="action" />
+                                        </InputAdornment>
+                                    ),
+                                }}
+                            />
+                        </Grid>
 
-            </div>
-        </div>
+                        <Grid item xs={12} md={3}>
+                            <FormControl fullWidth variant="outlined">
+                                <InputLabel id="order-by-label">Ordenar por</InputLabel>
+                                <Select
+                                    labelId="order-by-label"
+                                    value={orderBy}
+                                    onChange={(e) => setOrderBy(e.target.value)}
+                                    label="Ordenar por"
+                                >
+                                    <MenuItem value="nombre">Nombre</MenuItem>
+                                    <MenuItem value="apellidos">Apellido</MenuItem>
+                                    <MenuItem value="asignado">Estado de Asignación</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Grid>
+
+                        <Grid item xs={12} md={3}>
+                            <Button
+                                fullWidth
+                                variant="contained"
+                                color="primary"
+                                startIcon={<AddIcon />}
+                                onClick={() => setIsModalOpen(true)}
+                                sx={{
+                                    height: '100%',
+                                    textTransform: 'none',
+                                    fontSize: '1rem',
+                                }}
+                            >
+                                {isMobile ? 'Añadir' : 'Añadir Clase'}
+                            </Button>
+                        </Grid>
+                    </Grid>
+                </Paper>
+            </Box>
+
+            <Grid container spacing={3}>
+                {classes.map((clase) => {
+                    return (
+                        <Grid item xs={12} sm={6} md={4} key={clase.id}>
+                            <ClassCard
+                                clase={clase}
+                                onOpenStudentModal={handleOpenStudentModal}
+                                onToggleAssignment={toggleAssignment}
+                                onEditClass={(clase) => {
+                                    setEditingClass(clase);
+                                    setIsModalOpen(true);
+                                }}
+                                onDeleteClass={(clase) => handleDeleteClass(clase.id)}
+                            />
+
+                        </Grid>
+                    );
+                })}
+            </Grid>
+            <AddEditClassModal
+                open={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSave={handleSaveClass}
+                editingClass={editingClass || {}} // Pasar los datos completos de la clase
+            />
+            <AddStudentModal
+                open={isStudentModalOpen}
+                onClose={() => setIsStudentModalOpen(false)}
+                onSave={handleSaveStudent}
+                classId={selectedClassId}
+            />
+
+        </Container>
     );
 }

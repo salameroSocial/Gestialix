@@ -1,14 +1,12 @@
-import { jsx, jsxs } from "react/jsx-runtime";
+import { jsx, jsxs, Fragment } from "react/jsx-runtime";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { EyeOff, Eye, Facebook, Mail } from "lucide-react";
 import { useForm, Head } from "@inertiajs/react";
-import { G as GuestLayout } from "./GuestLayout-XMlsEBkD.js";
 import { I as InputError } from "./InputError-2JjWc6nJ.js";
 import { F as Footer } from "./footer-BJKdI4B5.js";
 import { L as Logo } from "./Logo-BI89IjeP.js";
 import { a as ButtonForms } from "./Buttons-D9lSxtz5.js";
-import "./ApplicationLogo-xMpxFOcX.js";
 import "@inertiajs/inertia-react";
 const SocialLoginButton = ({ href, icon: Icon, text, color }) => /* @__PURE__ */ jsx(motion.div, { whileHover: { scale: 1.05 }, whileTap: { scale: 0.95 }, children: /* @__PURE__ */ jsxs(
   "a",
@@ -34,7 +32,7 @@ function Login({ status, canResetPassword }) {
       onFinish: () => reset("password")
     });
   };
-  return /* @__PURE__ */ jsxs(GuestLayout, { children: [
+  return /* @__PURE__ */ jsxs(Fragment, { children: [
     /* @__PURE__ */ jsx(Head, { title: "Log in" }),
     /* @__PURE__ */ jsx("div", { className: "min-h-screen bg-gradient-to-br from-green-100 to-blue-100 flex items-center justify-center p-4", children: /* @__PURE__ */ jsxs(
       motion.div,

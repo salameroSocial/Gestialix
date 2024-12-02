@@ -1,57 +1,77 @@
-// AddEditClassModal.js
 import React, { useState } from 'react';
+import {
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Button,
+    TextField,
+    Grid,
+} from '@mui/material';
 
-export default function AddEditClassModal({ onSave, onClose, classData }) {
-    const [name, setName] = useState(classData?.name || '');
-    const [academicYear, setAcademicYear] = useState(classData?.academicYear || '');
+const AddEditClassModal = ({ open, onClose, onSave, initialData = {} }) => {
+    const [formData, setFormData] = useState({
+        nombre: initialData.nombre || '',
+        capacidad: initialData.capacidad || '',
+    });
 
-    const handleSubmit = (e) => {
-        console.log("Clikao")
-        e.preventDefault();
-        onSave({ name, academicYear });
+    const handleSave = () => {
+        if (formData.nombre && formData.capacidad) {
+            onSave({
+                nombre: formData.nombre,
+                capacidad: parseInt(formData.capacidad, 10),
+            });
+            setFormData({ nombre: '', capacidad: '' });
+            onClose();
+        } else {
+            alert('Por favor, completa todos los campos');
+        }
+    };
+
+    const handleChange = (e) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value,
+        });
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-            <div className="bg-white rounded-lg p-6 w-96">
-                <h2 className="text-xl font-semibold mb-4">
-                    {classData ? 'Editar Clase' : 'Añadir Nueva Clase'}
-                </h2>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium">Nombre de la Clase</label>
-                        <input
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            className="border p-2 rounded w-full"
-                            required
+        <Dialog open={open} onClose={onClose}>
+            <DialogTitle>{initialData.id ? 'Editar Clase' : 'Añadir Clase'}</DialogTitle>
+            <DialogContent>
+                <Grid container spacing={2} sx={{ mt: 1 }}>
+                    <Grid item xs={12}>
+                        <TextField
+                            autoFocus
+                            label="Nombre de la Clase"
+                            name="nombre"
+                            fullWidth
+                            variant="outlined"
+                            value={formData.nombre}
+                            onChange={handleChange}
                         />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium">Año Académico</label>
-                        <input
-                            type="text"
-                            value={academicYear}
-                            onChange={(e) => setAcademicYear(e.target.value)}
-                            className="border p-2 rounded w-full"
-                            required
+                    </Grid>
+                    <Grid item xs={12}>
+                        <TextField
+                            label="Capacidad"
+                            name="capacidad"
+                            type="number"
+                            fullWidth
+                            variant="outlined"
+                            value={formData.capacidad}
+                            onChange={handleChange}
                         />
-                    </div>
-                    <div className="flex justify-end space-x-2">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="px-4 py-2 border rounded"
-                        >
-                            Cancelar
-                        </button>
-                        <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">
-                            Guardar
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                    </Grid>
+                </Grid>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={onClose}>Cancelar</Button>
+                <Button onClick={handleSave} variant="contained" color="primary">
+                    {initialData.id ? 'Guardar Cambios' : 'Añadir'}
+                </Button>
+            </DialogActions>
+        </Dialog>
     );
-}
+};
+
+export default AddEditClassModal;

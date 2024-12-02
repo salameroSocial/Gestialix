@@ -29,24 +29,26 @@ class EstudianteController extends Controller
         ]);
     }
 
-    public function store(Request $request, Clase $class)
+    public function store(Request $request)
     {
-        // dd($request->all() + ['clase_id' => $class->id]);
         $validatedData = $request->validate([
             'nombre' => 'required|string|max:255',
             'apellidos' => 'required|string|max:255',
-            'intolerancia_religion' => 'nullable|array', // Cambiamos a array
-            'intolerancia_religion.*' => 'string|max:255', // Validamos cada elemento del array
-            'beca' => 'boolean'
+            'clase_id' => 'required|exists:clases,id', // Validar que el ID de la clase existe
+            'intolerancia_religion' => 'nullable|array',
+            'intolerancia_religion.*' => 'string|max:255',
+            'beca' => 'boolean',
         ]);
 
-        // Convertimos intolerancia_religion a JSON para almacenarlo
+        // Convertimos intolerancia_religion a JSON
         $validatedData['intolerancia_religion'] = json_encode($validatedData['intolerancia_religion']);
 
-        $estudiante = $class->estudiantes()->create($validatedData);
+        // Crear el estudiante
+        $estudiante = Estudiante::create($validatedData);
 
         return response()->json($estudiante, 201);
     }
+
 
 
     // Mostrar un estudiante específico

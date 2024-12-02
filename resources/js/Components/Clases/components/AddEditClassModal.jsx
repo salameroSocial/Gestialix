@@ -1,57 +1,124 @@
-// AddEditClassModal.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import {
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Button,
+    TextField,
+    Grid,
+} from '@mui/material';
 
-export default function AddEditClassModal({ onSave, onClose, classData }) {
-    const [name, setName] = useState(classData?.name || '');
-    const [academicYear, setAcademicYear] = useState(classData?.academicYear || '');
+const AddEditClassModal = ({ open, onClose, onSave, editingClass = null }) => {
+    const [formData, setFormData] = useState({
+        id: null,
+        nombre: '',
+        curso_academico: '',
+    });
 
-    const handleSubmit = (e) => {
-        console.log("Clikao")
-        e.preventDefault();
-        onSave({ name, academicYear });
+    const [errors, setErrors] = useState({
+        nombre: '',
+        curso_academico: '',
+    });
+
+    useEffect(() => {
+        if (editingClass) {
+            // Configurar los datos de la clase seleccionada al abrir el modal
+            setFormData({
+                id: editingClass.id || null,
+                nombre: editingClass.nombre || '', // Establece el nombre si existe
+                curso_academico: editingClass.curso_academico || '', // Establece el curso académico si existe
+            });
+        } else {
+            // Reinicia el formulario cuando se abre el modal para añadir una nueva clase
+            setFormData({ id: null, nombre: '', curso_academico: '' });
+        }
+    }, [editingClass]);
+
+    const validateCursoAcademico = (value) => {
+        const regex = /^\d{4}\/\d{4}$/; // Regex para validar YYYY/YYYY
+        if (!regex.test(value)) {
+            return 'El formato debe ser YYYY/YYYY';
+        }
+        return '';
+    };
+
+    const handleSave = () => {
+        const cursoAcademicoError = validateCursoAcademico(formData.curso_academico);
+        if (formData.nombre && !cursoAcademicoError) {
+            onSave({
+                id: formData.id, // Incluimos el id (será null si es una nueva clase)
+                nombre: formData.nombre,
+                curso_academico: formData.curso_academico,
+            });
+            setFormData({ id: null, nombre: '', curso_academico: '' });
+            setErrors({ nombre: '', curso_academico: '' });
+            onClose();
+        } else {
+            setErrors({
+                nombre: formData.nombre ? '' : 'El nombre es obligatorio',
+                curso_academico: cursoAcademicoError || 'El curso académico es obligatorio',
+            });
+        }
+    };
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+
+        setFormData({
+            ...formData,
+            [name]: value,
+        });
+
+        if (name === 'curso_academico') {
+            setErrors((prevErrors) => ({
+                ...prevErrors,
+                curso_academico: validateCursoAcademico(value),
+            }));
+        }
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-            <div className="bg-white rounded-lg p-6 w-96">
-                <h2 className="text-xl font-semibold mb-4">
-                    {classData ? 'Editar Clase' : 'Añadir Nueva Clase'}
-                </h2>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium">Nombre de la Clase</label>
-                        <input
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            className="border p-2 rounded w-full"
-                            required
+        <Dialog open={open} onClose={onClose} fullWidth>
+            <DialogTitle>{editingClass ? 'Editar Clase' : 'Añadir Clase'}</DialogTitle>
+            <DialogContent>
+                <Grid container spacing={2} sx={{ mt: 1 }}>
+                    <Grid item xs={12}>
+                        <TextField
+                            autoFocus
+                            label="Nombre de la Clase"
+                            name="nombre"
+                            fullWidth
+                            variant="outlined"
+                            value={formData.nombre}
+                            onChange={handleChange}
+                            error={!!errors.nombre}
+                            helperText={errors.nombre}
                         />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium">Año Académico</label>
-                        <input
+                    </Grid>
+                    <Grid item xs={12}>
+                        <TextField
+                            label="Curso Académico (YYYY/YYYY)"
+                            name="curso_academico"
                             type="text"
-                            value={academicYear}
-                            onChange={(e) => setAcademicYear(e.target.value)}
-                            className="border p-2 rounded w-full"
-                            required
+                            fullWidth
+                            variant="outlined"
+                            value={formData.curso_academico}
+                            onChange={handleChange}
+                            error={!!errors.curso_academico}
+                            helperText={errors.curso_academico}
                         />
-                    </div>
-                    <div className="flex justify-end space-x-2">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="px-4 py-2 border rounded"
-                        >
-                            Cancelar
-                        </button>
-                        <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">
-                            Guardar
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                    </Grid>
+                </Grid>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={onClose}>Cancelar</Button>
+                <Button onClick={handleSave} variant="contained" color="primary">
+                    {editingClass ? 'Guardar Cambios' : 'Añadir'}
+                </Button>
+            </DialogActions>
+        </Dialog>
     );
-}
+};
+
+export default AddEditClassModal;

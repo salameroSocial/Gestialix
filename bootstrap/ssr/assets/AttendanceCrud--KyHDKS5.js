@@ -4,6 +4,7 @@ import { S as Spinner, A as AppLayout } from "./AppLayout-RoKqJet7.js";
 import { ChevronLeft, Calendar, ChevronRight, Users, Search, Check, X } from "lucide-react";
 import DatePicker, { registerLocale } from "react-datepicker";
 import es from "date-fns/locale/es";
+import { c as csrfFetch } from "./csrfFetch-DJvw9o1x.js";
 import "@inertiajs/inertia";
 import "./apiClient-DgzgG0IP.js";
 import "axios";
@@ -75,7 +76,7 @@ function Asistencia() {
       var _a, _b, _c;
       try {
         setLoading(true);
-        const classResponse = await fetch("/api/classes");
+        const classResponse = await csrfFetch("/api/classes");
         if (!classResponse.ok) throw new Error("Error fetching classes");
         const classData = await classResponse.json();
         setClasses(classData);
@@ -95,7 +96,7 @@ function Asistencia() {
   const fetchAttendanceData = async (date, classId) => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/attendance-or-create?date=${date}&class_id=${classId}`);
+      const response = await csrfFetch(`/api/attendance-or-create?date=${date}&class_id=${classId}`);
       if (!response.ok) throw new Error("Error fetching attendance data");
       const data = await response.json();
       console.log("Data de atendancia: " + data);
@@ -113,7 +114,7 @@ function Asistencia() {
   };
   const handleAttendanceChange = async (attendanceId, newStatus) => {
     try {
-      const response = await fetch(`/api/attendance/${attendanceId}`, {
+      const response = await csrfFetch(`/api/attendance/${attendanceId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ asiste: newStatus })
