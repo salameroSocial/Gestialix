@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Asistencia;
 use Illuminate\Http\Request;
 use App\Models\Estudiante;
+use App\Models\Ocasional;
 
 class AsistenciaController extends Controller
 {
@@ -31,16 +32,28 @@ class AsistenciaController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'estudiante_id' => 'required|exists:students,id',
+            'estudiante_id' => 'nullable|exists:estudiantes,id',
+            'ocasional_id' => 'nullable|exists:ocasionals,id',
             'fecha' => 'required|date',
             'asiste' => 'required|boolean',
             'es_dia_suelto' => 'required|boolean',
         ]);
 
+        if (is_null($validated['estudiante_id']) && is_null($validated['ocasional_id'])) {
+            return response()->json([
+                'error' => 'Debe proporcionar un estudiante regular o un estudiante ocasional.',
+            ], 400);
+        }
+
         $attendance = Asistencia::create($validated);
 
-        return response()->json(['message' => 'Asistencia creada exitosamente', 'attendance' => $attendance], 201);
+        return response()->json([
+            'message' => 'Asistencia registrada exitosamente.',
+            'attendance' => $attendance,
+        ], 201);
     }
+
+
 
     // Actualizar una asistencia existente
     public function update(Request $request, $id)
@@ -94,19 +107,19 @@ class AsistenciaController extends Controller
         return response()->json($asistencias);
     }
 
+
     public function getOrCreateAttendance(Request $request)
     {
         $fecha = $request->input('date');
         $claseId = $request->input('class_id');
 
-        // Validar que los parámetros estén presentes
         if (!$fecha || !$claseId) {
             return response()->json([
-                'error' => 'Fecha y clase son requeridas'
+                'error' => 'Fecha y clase son requeridas.'
             ], 400);
         }
 
-        // Obtener estudiantes de la clase que no tienen asistencia en la fecha
+        // Obtener estudiantes regulares sin asistencia
         $estudiantesSinAsistencia = Estudiante::select('id')
             ->where('clase_id', $claseId)
             ->where('asignado_comedor', 1)
@@ -118,11 +131,12 @@ class AsistenciaController extends Controller
             })
             ->get();
 
-        // Crear asistencias para los estudiantes que no tienen registro
+        // Insertar asistencias para estudiantes regulares
         Asistencia::insertOrIgnore(
             $estudiantesSinAsistencia->map(function ($estudiante) use ($fecha) {
                 return [
                     'estudiante_id' => $estudiante->id,
+                    'ocasional_id' => null,
                     'fecha' => $fecha,
                     'asiste' => 1,
                     'es_dia_suelto' => 0,
@@ -130,12 +144,39 @@ class AsistenciaController extends Controller
             })->toArray()
         );
 
-        // Recuperar asistencias con datos del estudiante
+        // Obtener ocasionales sin asistencia
+        $ocasionalsSinAsistencia = Ocasional::select('id')
+            ->where('clase_id', $claseId) // Cambiado de `class_id` a `clase_id`
+            ->whereNotExists(function ($query) use ($fecha) {
+                $query->selectRaw(1)
+                    ->from('asistencias')
+                    ->whereRaw('asistencias.ocasional_id = ocasionals.id')
+                    ->where('asistencias.fecha', $fecha);
+            })
+            ->get();
 
-        $asistencias = Asistencia::with('estudiante')
-            ->whereHas('estudiante', function ($query) use ($claseId) {
-                $query->where('clase_id', $claseId)
-                    ->where('asignado_comedor', true);
+        // Insertar asistencias para ocasionales
+        Asistencia::insertOrIgnore(
+            $ocasionalsSinAsistencia->map(function ($ocasional) use ($fecha) {
+                return [
+                    'estudiante_id' => null,
+                    'ocasional_id' => $ocasional->id,
+                    'fecha' => $fecha,
+                    'asiste' => 1,
+                    'es_dia_suelto' => 1,
+                ];
+            })->toArray()
+        );
+
+        // Recuperar todas las asistencias para la clase y fecha dadas
+        $asistencias = Asistencia::with(['estudiante', 'ocasional.estudiante'])
+            ->where(function ($query) use ($claseId) {
+                $query->whereHas('estudiante', function ($subquery) use ($claseId) {
+                    $subquery->where('clase_id', $claseId); // Cambiado de `class_id` a `clase_id`
+                })
+                    ->orWhereHas('ocasional', function ($subquery) use ($claseId) {
+                        $subquery->where('clase_id', $claseId); // Cambiado de `class_id` a `clase_id`
+                    });
             })
             ->where('fecha', $fecha)
             ->get();

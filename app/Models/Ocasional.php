@@ -1,19 +1,18 @@
 <?php
 
-// app/Models/Asistencia.php
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Asistencia extends Model
+class Ocasional extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'estudiante_id',
-        'ocasional_id',
+        'clase_id',
         'fecha',
-        'asiste',
-        'es_dia_suelto',
     ];
 
     public function estudiante()
@@ -21,8 +20,8 @@ class Asistencia extends Model
         return $this->belongsTo(Estudiante::class, 'estudiante_id');
     }
 
-    public function ocasional()
+    public function clase()
     {
-        return $this->belongsTo(Ocasional::class, 'ocasional_id');
+        return $this->belongsTo(Clase::class);
     }
 }

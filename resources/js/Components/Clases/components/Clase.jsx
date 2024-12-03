@@ -106,11 +106,43 @@ export default function StudentList({ clase, estudiantes, onEditClass, onDeleteC
         setIsEditModalOpen(true);
     };
 
-    const handleSaveStudent = (updatedStudent) => {
-        // Implementar lógica de guardado aquí
-        console.log('Guardando estudiante actualizado:', updatedStudent);
+    const handleSaveStudent = async (editedStudent) => {
+        try {
+            // Combina "intolerancia_especifica" con "intolerancia_religion"
+            const intoleranciaReligion = [...editedStudent.intolerancia_religion];
+
+            if (editedStudent.intolerancia_religion.includes("Otros") && editedStudent.intolerancia_especifica) {
+                intoleranciaReligion.push(editedStudent.intolerancia_especifica);
+            }
+
+            const response = await csrfFetch(`/api/students/${editedStudent.studentId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    nombre: editedStudent.nombre,
+                    apellidos: editedStudent.apellidos,
+                    clase_id: editedStudent.clase_id,
+                    intolerancia_religion: intoleranciaReligion, // Incluye "Otros" y "intolerancia_especifica"
+                    beca: editedStudent.beca,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al actualizar el estudiante.');
+            }
+
+            const updatedStudent = await response.json();
+            console.log('Estudiante actualizado correctamente:', updatedStudent);
+
+            // Opcional: Actualizar el estado del frontend
+        } catch (error) {
+            console.error('Error al editar el estudiante:', error);
+        }
         setIsEditModalOpen(false);
     };
+
 
     return (
         <Card>

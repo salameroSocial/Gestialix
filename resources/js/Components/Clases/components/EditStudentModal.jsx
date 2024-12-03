@@ -133,7 +133,7 @@ const EditStudentModal = ({ open, onClose, onSave, studentData = {} }) => {
                     </Grid>
                     {formData.intolerancia_religion.includes('Otros') && (
                         <Grid item xs={12}>
-                            <TextField
+                            {/* <TextField
                                 label="Especificar Intolerancia"
                                 name="intolerancia_especifica"
                                 value={formData.intolerancia_especifica}
@@ -141,7 +141,22 @@ const EditStudentModal = ({ open, onClose, onSave, studentData = {} }) => {
                                 fullWidth
                                 variant="outlined"
                                 multiline
+                            /> */}
+                            <TextField
+                                label="Especificar Intolerancia"
+                                name="intolerancia_especifica"
+                                value={formData.intolerancia_especifica || ''}
+                                onChange={(e) =>
+                                    setFormData((prev) => ({
+                                        ...prev,
+                                        intolerancia_especifica: e.target.value,
+                                    }))
+                                }
+                                fullWidth
+                                variant="outlined"
+                                multiline
                             />
+
                         </Grid>
                     )}
                 </Grid>

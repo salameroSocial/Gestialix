@@ -74,6 +74,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
 
+        Route::post('/ocasionales', [OcasionalesController::class, 'store']);
+        Route::get('/ocasionales', [OcasionalesController::class, 'index']);
+
         Route::get('/attendance/ocasionales/{id}', [OcasionalesController::class, 'show']);
 
 

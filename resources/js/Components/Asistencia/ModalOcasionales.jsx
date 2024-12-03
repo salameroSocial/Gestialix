@@ -49,10 +49,10 @@ export default function OccasionalStudents({ occasionalStudents, closeModal, add
                     onClick={handleSaveOccasionalStudents}
                     color="primary"
                     variant="contained"
-                    disabled={selectedOccasionals.length === 0}
                 >
                     Guardar
                 </Button>
+
             </DialogActions>
         </Dialog>
     );

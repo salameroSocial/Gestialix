@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Check, X, Search, Calendar, Users, ChevronLeft, ChevronRight, Star } from 'lucide-react';
+import { Check, X, Search, Calendar, Users, ChevronLeft, ChevronRight, Star, Eye } from 'lucide-react';
 import Spinner from '@/Components/ui/Spinner';
 import DataSelector from '../Date/Picker';
 import csrfFetch from '@/utils/csrfFetch';
 import OccasionalStudents from './ModalOcasionales';
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
+import { StudentIntolerancesModal } from './ModalIntolerancia';
 
 export default function Asistencia() {
     const [attendanceData, setAttendanceData] = useState([]);
@@ -16,19 +18,47 @@ export default function Asistencia() {
     const [isOccasionalModalOpen, setIsOccasionalModalOpen] = useState(false);
     const [occasionalStudents, setOccasionalStudents] = useState([]);
     const [displayOccasionalStudents, setDisplayOccasionalStudents] = useState([]);
+    const [selectedStudent, setSelectedStudent] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [occasionalStudentsFromDB, setOccasionalStudentsFromDB] = useState([]);
+
+    // Cuando cambias la clase seleccionada
+    const handleOpenModal = (student) => {
+        setSelectedStudent(student);
+        setIsModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setSelectedStudent(null);
+        setIsModalOpen(false);
+    };
+
 
     useEffect(() => {
-        const fetchInitialData = async () => {
+        const fetchInitialDataAndOccasionalStudents = async () => {
             try {
                 setLoading(true);
+
+                // Fetch classes
                 const classResponse = await csrfFetch('/api/classes');
                 if (!classResponse.ok) throw new Error('Error fetching classes');
                 const classData = await classResponse.json();
                 setClasses(classData);
                 setSelectedClass(classData[0]?.id || null);
 
+                // Fetch attendance data if a class exists
                 if (classData[0]?.id) {
                     await fetchAttendanceData(currentDay, classData[0]?.id);
+                }
+
+                // Fetch occasional students if a class is selected
+                if (selectedClass) {
+                    const occasionalResponse = await csrfFetch(`/api/ocasionales?class_id=${selectedClass}`);
+                    if (!occasionalResponse.ok) {
+                        throw new Error('Error al obtener los estudiantes ocasionales');
+                    }
+                    const occasionalData = await occasionalResponse.json();
+                    setOccasionalStudentsFromDB(occasionalData);
                 }
             } catch (err) {
                 console.error(err);
@@ -38,8 +68,9 @@ export default function Asistencia() {
             }
         };
 
-        fetchInitialData();
-    }, []);
+        fetchInitialDataAndOccasionalStudents();
+    }, [selectedClass, currentDay]);
+
 
     const fetchAttendanceData = async (date, classId) => {
         try {
@@ -48,11 +79,11 @@ export default function Asistencia() {
             if (!response.ok) throw new Error('Error fetching attendance data');
             const data = await response.json();
 
-            console.log("Data de atendancia: " + data);
-            // Establece el estado por defecto como "asiste"
+            // Asegúrate de que cada registro tenga el campo `esOcasional`
             const updatedData = data.map((record) => ({
                 ...record,
                 asiste: record.asiste !== null ? record.asiste : 1,
+                esOcasional: record.es_dia_suelto === 1, // Determina si es ocasional
             }));
 
             setAttendanceData(updatedData);
@@ -63,6 +94,7 @@ export default function Asistencia() {
             setLoading(false);
         }
     };
+
 
 
     const handleAttendanceChange = async (attendanceId, newStatus) => {
@@ -155,12 +187,13 @@ export default function Asistencia() {
             return;
         }
 
-        // Filtrar estudiantes no asignados al comedor
+        // Filtrar estudiantes no asignados al comedor ni registrados como ocasionales
         const classData = classes.find((cls) => cls.id === selectedClass);
         if (classData) {
             const notAssignedStudents = classData.estudiantes.filter(
-                (student) => !student.asignado_comedor &&
-                    !displayOccasionalStudents.some((oc) => oc.id === student.id)
+                (student) =>
+                    !student.asignado_comedor &&
+                    !occasionalStudentsFromDB.some((oc) => oc.estudiante_id === student.id)
             );
             setOccasionalStudents(notAssignedStudents);
         }
@@ -168,11 +201,52 @@ export default function Asistencia() {
     };
 
 
-    // Agregar estudiantes seleccionados a la tabla
-    const addOccasionalStudents = (students) => {
-        setDisplayOccasionalStudents((prev) => [...prev, ...students]);
-        
+
+
+    const addOccasionalStudents = async (occasionalStudents, classId) => {
+        if (!classId) {
+            alert('Por favor, selecciona una clase primero.');
+            return;
+        }
+
+        try {
+            console.log('Estudiantes ocasionales a guardar:', occasionalStudents);
+            const promises = occasionalStudents.map(async (student) => {
+                const response = await csrfFetch('/api/ocasionales', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        estudiante_id: student.id,
+                        clase_id: classId,
+                        fecha: new Date().toISOString().split('T')[0],
+                    }),
+                });
+
+                if (!response.ok) {
+                    const text = await response.text();
+                    throw new Error(`Error en la solicitud: ${text}`);
+                }
+
+                return response.json();
+            });
+
+            const results = await Promise.all(promises);
+
+            // Agrega los ocasionales al estado de display
+            setDisplayOccasionalStudents((prev) => [...prev, ...occasionalStudents]);
+
+            console.log('Ocasionales guardados:', results);
+            alert('Estudiantes ocasionales guardados correctamente.');
+        } catch (error) {
+            console.error('Error al guardar los estudiantes ocasionales:', error);
+            alert('Hubo un problema al guardar los estudiantes ocasionales.');
+        }
     };
+
+
+
 
 
     // Cerrar modal
@@ -212,20 +286,6 @@ export default function Asistencia() {
                             changeDate={changeDate}
                             handleDayChange={handleDayChange}
                         />
-
-                        {/* <div className="flex items-center space-x-4">
-                            <button onClick={() => changeDate(-1)} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
-                                <ChevronLeft className="w-6 h-6 text-gray-700 dark:text-gray-300" />
-                            </button>
-                            <div className="flex items-center space-x-2">
-                                <Calendar className="text-blue-500 dark:text-blue-400" />
-                                <span className="font-medium text-gray-800 dark:text-gray-200">{formatDate(currentDay)}</span>
-                            </div>
-                            <button onClick={() => changeDate(1)} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
-                                <ChevronRight className="w-6 h-6 text-gray-700 dark:text-gray-300" />
-                            </button>
-                        </div> */}
-
                         {/* Búsqueda */}
                         <div className="relative w-full md:w-auto">
                             <input
@@ -248,6 +308,9 @@ export default function Asistencia() {
                                         Alumno
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        Intolerancia / Alergia
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                         Asistencia
                                     </th>
                                 </tr>
@@ -263,9 +326,22 @@ export default function Asistencia() {
                                                 {truncateText(`${record.estudiante.nombre} ${record.estudiante.apellidos}`, 40)}
                                             </span>
                                         </td>
-                                        {/* <td className="px-6 py-4 whitespace-nowrap text-gray-800 dark:text-gray-200">
-                                            {record.estudiante.apellidos}
-                                        </td> */}
+                                        <td className="px-6 py-4 whitespace-nowrap text-gray-800 dark:text-gray-200">
+                                            <button
+                                                onClick={() => handleOpenModal(record.estudiante)} // Pasa el estudiante completo al modal
+                                                className={`p-2 rounded-full transition-colors ${record.estudiante.intolerancia_religion &&
+                                                    JSON.parse(record.estudiante.intolerancia_religion).length > 0
+                                                    ? 'bg-red-500 hover:bg-red-600 text-white'
+                                                    : 'bg-gray-200 dark:bg-gray-700'
+                                                    }`}
+                                                disabled={
+                                                    !record.estudiante.intolerancia_religion ||
+                                                    JSON.parse(record.estudiante.intolerancia_religion).length === 0
+                                                }
+                                            >
+                                                <Eye className="w-5 h-5" />
+                                            </button>
+                                        </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center space-x-2">
                                                 <button
@@ -303,7 +379,7 @@ export default function Asistencia() {
                             </button>
                         </div>
                         {/* Tabla para mostrar ocasionales */}
-                        {displayOccasionalStudents.length > 0 && (
+                        {occasionalStudentsFromDB.length > 0 && (
                             <div className="overflow-x-auto mt-6">
                                 <table className="w-full border-collapse border border-gray-300 dark:border-gray-700">
                                     <thead>
@@ -317,10 +393,10 @@ export default function Asistencia() {
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                        {displayOccasionalStudents.map((student) => (
-                                            <tr key={student.id}>
+                                        {occasionalStudentsFromDB.map((student) => (
+                                            <tr key={student.estudiante_id}>
                                                 <td className="px-6 py-4 whitespace-nowrap text-gray-800 dark:text-gray-200">
-                                                    {student.nombre} {student.apellidos}
+                                                    {student.estudiante.nombre} {student.estudiante.apellidos}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-gray-800 dark:text-gray-200">
                                                     <div className="flex items-center space-x-2">
@@ -334,6 +410,7 @@ export default function Asistencia() {
                                 </table>
                             </div>
                         )}
+
                     </div>
                 </div>
 
@@ -358,25 +435,37 @@ export default function Asistencia() {
                         <div className="bg-yellow-100 dark:bg-yellow-800 p-4 rounded-lg">
                             <p className="text-yellow-800 dark:text-yellow-300 font-medium">Ocasional</p>
                             <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
-                                {
+
+                                {attendanceData.filter((record) => record.es_dia_suelto === 0).length}
+                                {/* {
                                     attendanceData.filter(
                                         (record) => record.esOcasional === true // Verifica si es ocasional
                                     ).length
-                                }
+                                } */}
                             </p>
                         </div>
                     </div>
                 </div>
             </div>
 
+            {/* Modal para mostrar intolerancias */}
+            {selectedStudent && (
+                <StudentIntolerancesModal
+                    isOpen={isModalOpen} // Aquí debe ir el estado booleano
+                    onClose={handleCloseModal}
+                    student={selectedStudent}
+                />
+            )}
+
 
             {/* Modal de Estudiantes Ocasionales */}
             {isOccasionalModalOpen && (
                 <OccasionalStudents
-                    occasionalStudents={occasionalStudents}
-                    closeModal={closeOccasionalModal}
-                    addStudents={addOccasionalStudents}
+                    occasionalStudents={occasionalStudents} // Lista de estudiantes
+                    closeModal={closeOccasionalModal} // Función para cerrar el modal
+                    addStudents={(students) => addOccasionalStudents(students, selectedClass)} // Asegúrate de pasar la clase seleccionada
                 />
+
             )}
         </div >
 

@@ -2,25 +2,46 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\OccasionalStudent;
+use App\Models\Ocasional;
 use Illuminate\Http\Request;
 
 class OcasionalesController extends Controller
 {
 
-    public function storeOccasionalStudent(Request $request)
+    public function index(Request $request)
     {
         $validated = $request->validate([
-            'student_id' => 'required|exists:students,id',
-            'class_id' => 'required|exists:classes,id',
-            'date' => 'nullable|date',
+            'class_id' => 'required|exists:clases,id',
         ]);
 
-        $occasionalStudent = OccasionalStudent::create($validated);
+        $ocasionales = Ocasional::where('clase_id', $validated['class_id'])
+            ->with('estudiante') // Asegúrate de tener esta relación en el modelo Ocasional
+            ->get();
 
-        return response()->json([
-            'message' => 'Estudiante ocasional agregado correctamente.',
-            'data' => $occasionalStudent,
-        ], 201);
+        return response()->json($ocasionales, 200);
+    }
+
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'estudiante_id' => 'required|exists:estudiantes,id',
+            'clase_id' => 'required|exists:clases,id',
+            'fecha' => 'required|date',
+        ]);
+        // dd($validated);
+        try {
+            $ocasional = Ocasional::create($validated);
+
+            return response()->json([
+                'message' => 'Estudiante ocasional registrado correctamente.',
+                'ocasional' => $ocasional,
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error al registrar el estudiante ocasional.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 }

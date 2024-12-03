@@ -13,16 +13,16 @@ class CreateOcassionalTable extends Migration
      */
     public function up()
     {
-        Schema::create('occasional_students', function (Blueprint $table) {
+        Schema::create('ocasionals', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('student_id'); // Relación con la tabla de estudiantes
-            $table->unsignedBigInteger('class_id');  // Relación con la clase
-            $table->date('date')->nullable();        // Fecha en la que fue ocasional
+            $table->unsignedBigInteger('estudiante_id')->nullable(); // Relación con la tabla de estudiantes
+            $table->unsignedBigInteger('clase_id')->nullable();  // Relación con la clase
+            $table->date('fecha')->nullable();                    // Fecha en la que fue ocasional
             $table->timestamps();
 
             // Claves foráneas
-            $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');
-            $table->foreign('class_id')->references('id')->on('classes')->onDelete('cascade');
+            $table->foreign('estudiante_id')->references('id')->on('estudiantes')->onDelete('cascade');
+            $table->foreign('clase_id')->references('id')->on('clases')->onDelete('cascade');
         });
     }
 
@@ -33,6 +33,6 @@ class CreateOcassionalTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('occasional_students');
+        Schema::dropIfExists('ocasionals');
     }
 }
