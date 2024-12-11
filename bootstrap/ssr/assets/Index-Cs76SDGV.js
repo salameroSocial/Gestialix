@@ -1,15 +1,90 @@
 import { jsx, jsxs } from "react/jsx-runtime";
-import { useState, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Users, Utensils, DollarSign, Calendar } from "lucide-react";
 import "@inertiajs/inertia";
 import "./Buttons-D9lSxtz5.js";
-import { ResponsiveContainer, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Line } from "recharts";
-import { S as Spinner, A as AppLayout } from "./AppLayout-RoKqJet7.js";
 import { c as csrfFetch } from "./csrfFetch-DJvw9o1x.js";
+import { S as Spinner, A as AppLayout } from "./AppLayout-DNQewRVV.js";
+import Chart from "chart.js/auto";
 import "framer-motion";
 import "@inertiajs/inertia-react";
 import "./apiClient-DgzgG0IP.js";
 import "axios";
+function StudentRegistrationsChart() {
+  const [chartData, setChartData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const chartRef = useRef(null);
+  let chartInstance = useRef(null);
+  useEffect(() => {
+    const fetchChartData = async () => {
+      try {
+        setLoading(true);
+        const response = await csrfFetch("/api/stats/altasEstudiantes");
+        if (!response.ok) throw new Error("Error fetching registration data");
+        const data = await response.json();
+        const formattedData = data.map((item) => ({
+          date: item.date,
+          total: item.total
+        }));
+        setChartData(formattedData);
+      } catch (err) {
+        console.error(err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchChartData();
+  }, []);
+  useEffect(() => {
+    if (chartData.length > 0) {
+      renderChart();
+    }
+  }, [chartData]);
+  const renderChart = () => {
+    if (chartInstance.current) {
+      chartInstance.current.destroy();
+    }
+    const ctx = chartRef.current.getContext("2d");
+    chartInstance.current = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: chartData.map((item) => item.date),
+        datasets: [
+          {
+            label: "Estudiantes Registrados",
+            data: chartData.map((item) => item.total),
+            borderColor: "rgba(59, 130, 246, 1)",
+            backgroundColor: "rgba(59, 130, 246, 0.2)",
+            tension: 0.4
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: "top"
+          },
+          title: {
+            display: true,
+            text: "Registros de Estudiantes"
+          }
+        }
+      }
+    });
+  };
+  if (loading) return /* @__PURE__ */ jsx(Spinner, {});
+  if (error) return /* @__PURE__ */ jsxs("p", { children: [
+    "Error: ",
+    error
+  ] });
+  return /* @__PURE__ */ jsxs("div", { className: "mt-8", children: [
+    /* @__PURE__ */ jsx("h2", { className: "text-lg font-semibold text-green-400 mb-4", children: "Registros de Estudiantes" }),
+    /* @__PURE__ */ jsx("div", { className: "bg-white p-4 rounded-lg shadow", children: /* @__PURE__ */ jsx("canvas", { ref: chartRef }) })
+  ] });
+}
 function Charts() {
   const [chartData, setChartData] = useState([]);
   const [classes, setClasses] = useState([]);
@@ -18,6 +93,8 @@ function Charts() {
   const [timeFilter, setTimeFilter] = useState("week");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const chartRef = useRef(null);
+  let chartInstance = useRef(null);
   const fetchClasses = async () => {
     try {
       const response = await csrfFetch("/api/classes");
@@ -59,12 +136,57 @@ function Charts() {
       setLoading(false);
     }
   };
+  const renderChart = () => {
+    if (chartInstance.current) {
+      chartInstance.current.destroy();
+    }
+    const ctx = chartRef.current.getContext("2d");
+    chartInstance.current = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: chartData.map((item) => item.day),
+        datasets: [
+          {
+            label: "Presentes",
+            data: chartData.map((item) => item.presentes),
+            borderColor: "rgba(52, 211, 153, 1)",
+            backgroundColor: "rgba(52, 211, 153, 0.2)",
+            tension: 0.4
+          },
+          {
+            label: "Ausentes",
+            data: chartData.map((item) => item.ausentes),
+            borderColor: "rgba(248, 113, 113, 1)",
+            backgroundColor: "rgba(248, 113, 113, 0.2)",
+            tension: 0.4
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: "top"
+          },
+          title: {
+            display: true,
+            text: "Asistencia por Día"
+          }
+        }
+      }
+    });
+  };
   useEffect(() => {
     fetchClasses();
   }, []);
   useEffect(() => {
     fetchChartData();
   }, [selectedClass, startDate, timeFilter]);
+  useEffect(() => {
+    if (chartData.length > 0) {
+      renderChart();
+    }
+  }, [chartData]);
   const calculateRange = () => {
     const today = new Date(startDate);
     let start2, end2;
@@ -79,7 +201,6 @@ function Charts() {
     }
     return { start: start2, end: end2 };
   };
-  const { start, end } = calculateRange();
   const changeRange = (direction) => {
     setStartDate((prev) => {
       const newDate = new Date(prev);
@@ -96,6 +217,7 @@ function Charts() {
     "Error: ",
     error
   ] });
+  const { start, end } = calculateRange();
   return /* @__PURE__ */ jsxs("div", { className: "mt-8", children: [
     /* @__PURE__ */ jsxs("h2", { className: "text-lg font-semibold text-gray-700 mb-4 text-green-400", children: [
       "Asistencia por ",
@@ -150,75 +272,9 @@ function Charts() {
         }
       )
     ] }),
-    /* @__PURE__ */ jsx("div", { className: "bg-white p-4 rounded-lg shadow", children: /* @__PURE__ */ jsx(ResponsiveContainer, { width: "100%", height: 500, children: /* @__PURE__ */ jsxs(LineChart, { data: chartData, children: [
-      /* @__PURE__ */ jsx(CartesianGrid, { strokeDasharray: "3 3" }),
-      /* @__PURE__ */ jsx(XAxis, { dataKey: "day", tick: { fontSize: 12 } }),
-      /* @__PURE__ */ jsx(YAxis, {}),
-      /* @__PURE__ */ jsx(Tooltip, {}),
-      /* @__PURE__ */ jsx(Legend, {}),
-      /* @__PURE__ */ jsx(Line, { type: "monotone", dataKey: "presentes", stroke: "#34d399", name: "Presentes" }),
-      /* @__PURE__ */ jsx(Line, { type: "monotone", dataKey: "ausentes", stroke: "#f87171", name: "Ausentes" })
-    ] }) }) })
+    /* @__PURE__ */ jsx("div", { className: "bg-white p-4 rounded-lg shadow", children: /* @__PURE__ */ jsx("canvas", { ref: chartRef }) })
   ] });
 }
-function StudentRegistrationsChart() {
-  const [chartData, setChartData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  useEffect(() => {
-    const fetchChartData = async () => {
-      try {
-        setLoading(true);
-        const response = await csrfFetch("/api/stats/altasEstudiantes");
-        if (!response.ok) throw new Error("Error fetching registration data");
-        const data = await response.json();
-        const formattedData = data.map((item) => ({
-          date: item.date,
-          total: item.total
-        }));
-        setChartData(formattedData);
-      } catch (err) {
-        console.error(err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchChartData();
-  }, []);
-  if (loading) return /* @__PURE__ */ jsx(Spinner, {});
-  if (error) return /* @__PURE__ */ jsxs("p", { children: [
-    "Error: ",
-    error
-  ] });
-  return /* @__PURE__ */ jsxs("div", { className: "mt-8", children: [
-    /* @__PURE__ */ jsx("h2", { className: "text-lg font-semibold text-green-400 mb-4", children: "Registros de Estudiantes" }),
-    /* @__PURE__ */ jsx("div", { className: "bg-white p-4 rounded-lg shadow", children: /* @__PURE__ */ jsx(ResponsiveContainer, { width: "100%", height: 300, children: /* @__PURE__ */ jsxs(LineChart, { data: chartData, children: [
-      /* @__PURE__ */ jsx(CartesianGrid, { strokeDasharray: "3 3" }),
-      /* @__PURE__ */ jsx(XAxis, { dataKey: "date", tick: { fontSize: 12 } }),
-      /* @__PURE__ */ jsx(YAxis, {}),
-      /* @__PURE__ */ jsx(Tooltip, {}),
-      /* @__PURE__ */ jsx(Legend, {}),
-      /* @__PURE__ */ jsx(
-        Line,
-        {
-          type: "monotone",
-          dataKey: "total",
-          stroke: "#3b82f6",
-          strokeWidth: 2,
-          name: "Estudiantes"
-        }
-      )
-    ] }) }) })
-  ] });
-}
-const menuData = [
-  { day: "Lunes", students: 120 },
-  { day: "Martes", students: 150 },
-  { day: "Miércoles", students: 200 },
-  { day: "Jueves", students: 180 },
-  { day: "Viernes", students: 190 }
-];
 const Card = ({ title, value, icon: Icon }) => /* @__PURE__ */ jsxs("div", { className: "bg-white rounded-lg shadow p-6 flex items-center", children: [
   /* @__PURE__ */ jsx("div", { className: "rounded-full bg-blue-100 p-3 mr-4", children: /* @__PURE__ */ jsx(Icon, { className: "h-8 w-8 text-blue-500" }) }),
   /* @__PURE__ */ jsxs("div", { children: [
@@ -241,9 +297,9 @@ function Dashboard() {
         /* @__PURE__ */ jsx(Card, { title: "Ingresos Hoy", value: "€540", icon: DollarSign }),
         /* @__PURE__ */ jsx(Card, { title: "Próximo Evento", value: "15 Mayo", icon: Calendar })
       ] }),
-      /* @__PURE__ */ jsx(StudentRegistrationsChart, { menuData }),
       /* @__PURE__ */ jsx("hr", { className: "my-6" }),
-      /* @__PURE__ */ jsx(Charts, { menuData }),
+      /* @__PURE__ */ jsx(Charts, {}),
+      /* @__PURE__ */ jsx(StudentRegistrationsChart, {}),
       /* @__PURE__ */ jsx("hr", { className: "my-6" }),
       /* @__PURE__ */ jsxs("div", { className: "mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2", children: [
         /* @__PURE__ */ jsxs("div", { className: "bg-white p-6 rounded-lg shadow", children: [

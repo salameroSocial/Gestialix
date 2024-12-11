@@ -54,10 +54,10 @@ function SidebarMenu({ isOpen, toggleSidebar, userData }) {
             children: isOpen ? /* @__PURE__ */ jsx(X, { className: "w-6 h-6 text-gray-600 dark:text-black" }) : /* @__PURE__ */ jsx(Menu, { className: "w-6 h-6 text-gray-600 dark:text-gray-300" })
           }
         ),
-        /* @__PURE__ */ jsxs("div", { className: `flex items-center justify-center h-20 ${isOpen ? "px-4" : ""}`, children: [
+        /* @__PURE__ */ jsx("div", { className: `flex items-center justify-center h-20 ${isOpen ? "px-4" : ""}`, children: /* @__PURE__ */ jsxs("a", { href: "/dashboard", target: "_blank", children: [
           /* @__PURE__ */ jsx("img", { src: "/images/logoGestialix.svg", alt: "Logo", className: "w-10 h-10" }),
           isOpen && /* @__PURE__ */ jsx("h1", { className: "ml-4 text-xl font-bold text-gray-700 dark:text-gray-300", children: "Gestialix" })
-        ] }),
+        ] }) }),
         /* @__PURE__ */ jsxs(
           "button",
           {
@@ -76,9 +76,11 @@ function SidebarMenu({ isOpen, toggleSidebar, userData }) {
           /* @__PURE__ */ jsx(MenuItem, { icon: List, label: "Asistencias", isOpen, onClick: () => navigateTo("/asistencias") }),
           /* @__PURE__ */ jsx(MenuItem, { icon: Settings, label: "Configuración", isOpen, onClick: () => navigateTo("/settings") }),
           /* @__PURE__ */ jsx(MenuItem, { icon: HelpCircle, label: "Ayuda", isOpen, onClick: () => navigateTo("/terms") }),
-          /* @__PURE__ */ jsxs("div", { className: "ml-4", children: [
-            /* @__PURE__ */ jsx("h2", { className: "text-gray-800 dark:text-gray-200 text-sm font-bold", children: ((_a = userData == null ? void 0 : userData.user) == null ? void 0 : _a.name) || "Usuario" }),
-            /* @__PURE__ */ jsx("p", { className: "text-gray-500 dark:text-gray-400 text-xs", children: ((_b = userData == null ? void 0 : userData.user) == null ? void 0 : _b.email) || "" })
+          /* @__PURE__ */ jsxs("div", { className: `p-4 ${isOpen ? "text-center" : "flex justify-center"}`, children: [
+            isOpen ? /* @__PURE__ */ jsx("h2", { className: "text-gray-800 dark:text-gray-200 text-sm font-bold", children: ((_a = userData == null ? void 0 : userData.user) == null ? void 0 : _a.name) || "Usuario" }) : /* @__PURE__ */ jsx("span", { className: "w-2 h-2 bg-orange-500 rounded-full" }),
+            " ",
+            /* @__PURE__ */ jsx("br", {}),
+            isOpen && /* @__PURE__ */ jsx("p", { className: "text-gray-500 dark:text-gray-400 text-xs", children: ((_b = userData == null ? void 0 : userData.user) == null ? void 0 : _b.email) || "" })
           ] })
         ] }) }),
         /* @__PURE__ */ jsx(MenuItem, { icon: LogOut, label: "Cerrar sesión", isOpen, onClick: handleLogout }),
@@ -168,7 +170,7 @@ function AppLayout({ children }) {
       {
         className: `transition-all duration-300 w-full ${isSidebarOpen ? "sm:ml-64 md:ml-20 ml-0" : "sm:ml-20 ml-0"}`,
         children: [
-          /* @__PURE__ */ jsx("header", { className: "p-4 bg-white shadow-md" }),
+          /* @__PURE__ */ jsx("header", { className: " bg-white shadow-md" }),
           /* @__PURE__ */ jsx("main", { children })
         ]
       }

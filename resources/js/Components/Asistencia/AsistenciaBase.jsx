@@ -34,31 +34,47 @@ export default function Asistencia() {
     };
 
 
+
+    // useEffect(() => {
+    //     const fetchInitialData = async () => {
+    //         try {
+    //             setLoading(true);
+    //             const classResponse = await csrfFetch('/api/classes');
+    //             if (!classResponse.ok) throw new Error('Error fetching classes');
+    //             const classData = await classResponse.json();
+    //             setClasses(classData);
+    //             setSelectedClass(classData[0]?.id || null);
+
+    //             if (classData[0]?.id) {
+    //                 await fetchAttendanceData(currentDay, classData[0]?.id);
+    //             }
+    //         } catch (err) {
+    //             console.error(err);
+    //             setError(err.message);
+    //         } finally {
+    //             setLoading(false);
+    //         }
+    //     };
+
+    //     fetchInitialData();
+    // }, []);
+
+    // Carga inicial de clases y datos relacionados
     useEffect(() => {
-        const fetchInitialDataAndOccasionalStudents = async () => {
+        const fetchInitialData = async () => {
             try {
                 setLoading(true);
-
-                // Fetch classes
+                console.log('Fetching classes...');
                 const classResponse = await csrfFetch('/api/classes');
                 if (!classResponse.ok) throw new Error('Error fetching classes');
                 const classData = await classResponse.json();
+                console.log('Classes Traidas:', classData);
                 setClasses(classData);
-                setSelectedClass(classData[0]?.id || null);
+                setSelectedClass(classData[0]?.id || null); // Selecciona la primera clase por defecto
 
-                // Fetch attendance data if a class exists
+                // Si hay una clase, carga los datos iniciales de asistencia
                 if (classData[0]?.id) {
                     await fetchAttendanceData(currentDay, classData[0]?.id);
-                }
-
-                // Fetch occasional students if a class is selected
-                if (selectedClass) {
-                    const occasionalResponse = await csrfFetch(`/api/ocasionales?class_id=${selectedClass}`);
-                    if (!occasionalResponse.ok) {
-                        throw new Error('Error al obtener los estudiantes ocasionales');
-                    }
-                    const occasionalData = await occasionalResponse.json();
-                    setOccasionalStudentsFromDB(occasionalData);
                 }
             } catch (err) {
                 console.error(err);
@@ -68,8 +84,29 @@ export default function Asistencia() {
             }
         };
 
-        fetchInitialDataAndOccasionalStudents();
-    }, [selectedClass, currentDay]);
+        fetchInitialData();
+    }, [currentDay]); // `currentDay` puede cambiar si seleccionas otra fecha
+
+    // Actualiza los estudiantes ocasionales al cambiar la clase seleccionada
+    useEffect(() => {
+        const fetchOccasionalStudents = async () => {
+            try {
+                if (!selectedClass) return; // Evita ejecutar si no hay clase seleccionada
+
+                console.log(`Fetching occasional students for class ${selectedClass}...`);
+                const occasionalResponse = await csrfFetch(`/api/ocasionales?class_id=${selectedClass}`);
+                if (!occasionalResponse.ok) throw new Error('Error al obtener los estudiantes ocasionales');
+                const occasionalData = await occasionalResponse.json();
+                console.log('Ocassional students:', occasionalData);
+                setOccasionalStudentsFromDB(occasionalData);
+            } catch (err) {
+                console.error(err);
+                setError(err.message);
+            }
+        };
+
+        fetchOccasionalStudents();
+    }, [selectedClass]); // Solo se ejecuta cuando cambia `selectedClass`
 
 
     const fetchAttendanceData = async (date, classId) => {
@@ -125,12 +162,23 @@ export default function Asistencia() {
 
 
     const handleDayChange = async (newDate) => {
-        setCurrentDay(newDate);
         if (!selectedClass) {
             console.warn("Selecciona una clase primero.");
             return;
         }
-        await fetchAttendanceData(newDate, selectedClass);
+        setCurrentDay(newDate);
+        setLoading(true);
+        try {
+            const response = await csrfFetch(`/api/attendance-or-create?date=${newDate}&class_id=${selectedClass}`);
+            if (!response.ok) throw new Error('Error fetching attendance data');
+            const data = await response.json();
+            setAttendanceData(data);
+        } catch (err) {
+            console.error(err);
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const filteredStudents = attendanceData.filter(
@@ -176,8 +224,13 @@ export default function Asistencia() {
     );
 
 
-    const handleClassChange = (classId) => {
-        setSelectedClass(classId);
+    const handleClassChange = async (classId) => {
+        try {
+            setSelectedClass(classId); // Actualiza el estado de la clase seleccionada
+            await fetchAttendanceData(currentDay, classId); // Carga los datos de asistencia para la nueva clase
+        } catch (err) {
+            console.error('Error al cambiar de clase:', err);
+        }
     };
 
     // Abrir modal
@@ -187,21 +240,16 @@ export default function Asistencia() {
             return;
         }
 
-        // Filtrar estudiantes no asignados al comedor ni registrados como ocasionales
         const classData = classes.find((cls) => cls.id === selectedClass);
         if (classData) {
+            const assignedIds = new Set(occasionalStudentsFromDB.map((oc) => oc.estudiante_id));
             const notAssignedStudents = classData.estudiantes.filter(
-                (student) =>
-                    !student.asignado_comedor &&
-                    !occasionalStudentsFromDB.some((oc) => oc.estudiante_id === student.id)
+                (student) => !student.asignado_comedor && !assignedIds.has(student.id)
             );
             setOccasionalStudents(notAssignedStudents);
         }
         setIsOccasionalModalOpen(true);
     };
-
-
-
 
     const addOccasionalStudents = async (occasionalStudents, classId) => {
         if (!classId) {
@@ -245,15 +293,10 @@ export default function Asistencia() {
         }
     };
 
-
-
-
-
     // Cerrar modal
     const closeOccasionalModal = () => {
         setIsOccasionalModalOpen(false);
     };
-
 
     return (
         <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-2">

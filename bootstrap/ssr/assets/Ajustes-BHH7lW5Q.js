@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Inertia } from "@inertiajs/inertia";
 import { toast } from "react-toastify";
 import { c as csrfFetch } from "./csrfFetch-DJvw9o1x.js";
-import { A as AppLayout } from "./AppLayout-RoKqJet7.js";
+import { A as AppLayout } from "./AppLayout-DNQewRVV.js";
 import "lucide-react";
 import "./apiClient-DgzgG0IP.js";
 import "axios";

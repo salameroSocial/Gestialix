@@ -1,7 +1,7 @@
 import { jsx, jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from "react";
 import { Search, User, ClipboardCheck, Calendar, BookOpen } from "lucide-react";
-import { A as AppLayout } from "./AppLayout-RoKqJet7.js";
+import { A as AppLayout } from "./AppLayout-DNQewRVV.js";
 import { c as csrfFetch } from "./csrfFetch-DJvw9o1x.js";
 import "@inertiajs/inertia";
 import "./apiClient-DgzgG0IP.js";

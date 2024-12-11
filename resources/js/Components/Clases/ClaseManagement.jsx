@@ -219,13 +219,27 @@ export default function ClaseManagement() {
         }
     };
 
+    const processedClasses = classes
+        .filter((cls) => {
+            // Filtrar por el término de búsqueda en el nombre de la clase
+            return cls.nombre.toLowerCase().includes(searchTerm.toLowerCase());
+        })
+        .map((cls) => {
+            // Ordenar los estudiantes dentro de cada clase
+            const sortedEstudiantes = [...(cls.estudiantes || [])].sort((a, b) => {
+                if (orderBy === 'nombre') {
+                    return (a.nombre || '').localeCompare(b.nombre || '');
+                } else if (orderBy === 'apellidos') {
+                    return (a.apellidos || '').localeCompare(b.apellidos || '');
+                } else if (orderBy === 'asignado') {
+                    return (a.asignado_comedor ? 1 : 0) - (b.asignado_comedor ? 1 : 0);
+                }
+                return 0;
+            });
 
-
-    const filteredClasses = classes.filter((cls) =>
-        cls.nombre.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    console.log('Clases filtradas:', filteredClasses);
+            // Devolver la clase con los estudiantes ordenados
+            return { ...cls, estudiantes: sortedEstudiantes };
+        });
 
     return (
         <Container maxWidth="xl" className="h-full mb-8 mt-0">
@@ -308,7 +322,7 @@ export default function ClaseManagement() {
             </Box>
 
             <Grid container spacing={3}>
-                {classes.map((clase) => {
+                {processedClasses.map((clase) => {
                     return (
                         <Grid item xs={12} sm={6} md={4} key={clase.id}>
                             <StudentList

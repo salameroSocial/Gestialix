@@ -19,7 +19,7 @@ class ClaseController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request) 
+    public function store(Request $request)
     {
         $validatedData = $request->validate([
             'nombre' => 'required|string|max:255',

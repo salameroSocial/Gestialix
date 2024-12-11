@@ -119,8 +119,8 @@ class AsistenciaController extends Controller
             ], 400);
         }
 
-        // Obtener estudiantes regulares sin asistencia
-        $estudiantesSinAsistencia = Estudiante::select('id')
+        // Obtener estudiantes regulares de la clase seleccionada sin asistencia para la fecha dada
+        $estudiantesSinAsistencia = Estudiante::select('id', 'nombre', 'apellidos', 'clase_id')
             ->where('clase_id', $claseId)
             ->where('asignado_comedor', 1)
             ->whereNotExists(function ($query) use ($fecha) {
@@ -131,7 +131,7 @@ class AsistenciaController extends Controller
             })
             ->get();
 
-        // Insertar asistencias para estudiantes regulares
+        // Insertar asistencias para estudiantes regulares que no tienen registro
         Asistencia::insertOrIgnore(
             $estudiantesSinAsistencia->map(function ($estudiante) use ($fecha) {
                 return [
@@ -140,13 +140,15 @@ class AsistenciaController extends Controller
                     'fecha' => $fecha,
                     'asiste' => 1,
                     'es_dia_suelto' => 0,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ];
             })->toArray()
         );
 
-        // Obtener ocasionales sin asistencia
-        $ocasionalsSinAsistencia = Ocasional::select('id')
-            ->where('clase_id', $claseId) // Cambiado de `class_id` a `clase_id`
+        // Obtener estudiantes ocasionales sin asistencia para la fecha dada
+        $ocasionalsSinAsistencia = Ocasional::select('id', 'estudiante_id', 'clase_id')
+            ->where('clase_id', $claseId)
             ->whereNotExists(function ($query) use ($fecha) {
                 $query->selectRaw(1)
                     ->from('asistencias')
@@ -155,7 +157,7 @@ class AsistenciaController extends Controller
             })
             ->get();
 
-        // Insertar asistencias para ocasionales
+        // Insertar asistencias para estudiantes ocasionales que no tienen registro
         Asistencia::insertOrIgnore(
             $ocasionalsSinAsistencia->map(function ($ocasional) use ($fecha) {
                 return [
@@ -164,18 +166,20 @@ class AsistenciaController extends Controller
                     'fecha' => $fecha,
                     'asiste' => 1,
                     'es_dia_suelto' => 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ];
             })->toArray()
         );
 
-        // Recuperar todas las asistencias para la clase y fecha dadas
+        // Recuperar todas las asistencias de la clase para la fecha dada
         $asistencias = Asistencia::with(['estudiante', 'ocasional.estudiante'])
             ->where(function ($query) use ($claseId) {
                 $query->whereHas('estudiante', function ($subquery) use ($claseId) {
-                    $subquery->where('clase_id', $claseId); // Cambiado de `class_id` a `clase_id`
+                    $subquery->where('clase_id', $claseId);
                 })
                     ->orWhereHas('ocasional', function ($subquery) use ($claseId) {
-                        $subquery->where('clase_id', $claseId); // Cambiado de `class_id` a `clase_id`
+                        $subquery->where('clase_id', $claseId);
                     });
             })
             ->where('fecha', $fecha)

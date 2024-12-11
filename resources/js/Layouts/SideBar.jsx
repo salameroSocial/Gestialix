@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { Inertia } from '@inertiajs/inertia';
 import { Menu, X, Home, Users, BarChart, Settings, HelpCircle, Moon, Sun, LogOut, List } from 'lucide-react';
+import { ThemeContext } from '../utils/ThemeContext';
 
 const MenuItem = ({ icon: Icon, label, isOpen, onClick }) => (
     <li
@@ -15,7 +16,7 @@ const MenuItem = ({ icon: Icon, label, isOpen, onClick }) => (
 
 export default function SidebarMenu({ isOpen, toggleSidebar, userData }) {
     const [isMobile, setIsMobile] = useState(false);
-    const [darkMode, setDarkMode] = useState(false);
+    const { darkMode, toggleTheme } = useContext(ThemeContext);
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -23,12 +24,6 @@ export default function SidebarMenu({ isOpen, toggleSidebar, userData }) {
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
-
-    useEffect(() => {
-        document.documentElement.classList.toggle('dark', darkMode);
-    }, [darkMode]);
-
-    const toggleTheme = () => setDarkMode(!darkMode);
 
     const navigateTo = (route) => {
         Inertia.visit(route);
@@ -48,11 +43,11 @@ export default function SidebarMenu({ isOpen, toggleSidebar, userData }) {
         >
             <button
                 onClick={toggleSidebar}
-                className={`absolute top-4 -right-12 bg-white dark:bg-white p-2 rounded-full shadow-md transition-transform duration-300 ease-in-out
+                className={`absolute top-4 -right-12 bg-white dark:bg-gray-900 p-2 rounded-full shadow-md transition-transform duration-300 ease-in-out
                             ${isOpen ? 'rotate-180' : ''}`}
                 aria-label={isOpen ? "Cerrar menú" : "Abrir menú"}
             >
-                {isOpen ? <X className="w-6 h-6 text-gray-600 dark:text-black" /> : <Menu className="w-6 h-6 text-gray-600 dark:text-gray-300" />}
+                {isOpen ? <X className="w-6 h-6 text-gray-600 dark:text-white" /> : <Menu className="w-6 h-6 text-gray-600 dark:text-gray-300" />}
             </button>
 
             <div className={`flex items-center justify-center h-20 ${isOpen ? 'px-4' : ''}`}>
@@ -78,27 +73,9 @@ export default function SidebarMenu({ isOpen, toggleSidebar, userData }) {
                     <MenuItem icon={List} label="Asistencias" isOpen={isOpen} onClick={() => navigateTo('/asistencias')} />
                     <MenuItem icon={Settings} label="Configuración" isOpen={isOpen} onClick={() => navigateTo('/settings')} />
                     <MenuItem icon={HelpCircle} label="Ayuda" isOpen={isOpen} onClick={() => navigateTo('/terms')} />
-                    <div className={`p-4 ${isOpen ? 'text-center' : 'flex justify-center'}`}>
-                        {isOpen ? (
-                            <h2 className="text-gray-800 dark:text-gray-200 text-sm font-bold">
-                                {userData?.user?.name || 'Usuario'}
-                            </h2>
-                        ) : (
-                            <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
-
-                        )} <br />
-                        {isOpen && (
-                            <p className="text-gray-500 dark:text-gray-400 text-xs">
-                                {userData?.user?.email || ''}
-                            </p>
-                        )}
-
-                    </div>
-
                 </ul>
             </nav>
 
-            {/* Botón de cierre de sesión */}
             <MenuItem icon={LogOut} label="Cerrar sesión" isOpen={isOpen} onClick={handleLogout} />
 
             <div className={`p-4 ${isOpen ? 'text-center' : 'flex justify-center'}`}>

@@ -1,6 +1,6 @@
 import { jsx } from "react/jsx-runtime";
 import "react";
-import { A as AppLayout } from "./AppLayout-RoKqJet7.js";
+import { A as AppLayout } from "./AppLayout-DNQewRVV.js";
 import "@inertiajs/inertia";
 import "lucide-react";
 import "./apiClient-DgzgG0IP.js";

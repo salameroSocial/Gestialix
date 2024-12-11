@@ -44,4 +44,10 @@ class OcasionalesController extends Controller
             ], 500);
         }
     }
+    // Metodo show en el que se muestran ocasionales segun el id de la clase
+    public function show($id)
+    {
+        $ocasionales = Ocasional::where('clase_id', $id)->with('estudiante')->get();
+        return response()->json($ocasionales);
+    }
 }

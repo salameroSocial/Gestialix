@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { Calendar, Users, Utensils, DollarSign, LogOut } from 'lucide-react'
 import { Inertia } from '@inertiajs/inertia'
 import { Button } from '@/Components/ui/Buttons'
 import { Charts, StudentRegistrationsChart } from '@/Components/Dashboard/Charts'
 import AppLayout from '@/Layouts/AppLayout'
+// import { Charts } from "./Charts";
 
 // Datos de ejemplo para el gráfico de asistencia
 const menuData = [
@@ -67,9 +67,13 @@ export default function Dashboard() {
                         </div>
 
                         {/* Gráfico de Asistencia */}
-                        <StudentRegistrationsChart menuData={menuData} />
+                        {/* <StudentRegistrationsChart menuData={menuData} /> */}
                         <hr className='my-6' />
-                        <Charts menuData={menuData} />
+                        {/* Primer gráfico */}
+                        <Charts />
+
+                        {/* Segundo gráfico */}
+                        <StudentRegistrationsChart />
                         <hr className='my-6' />
 
                         {/* Menú y Próximos Eventos */}

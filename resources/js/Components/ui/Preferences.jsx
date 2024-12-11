@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { ThemeContext } from '@/ThemeContext';
+import { ThemeContext } from '@/utils/ThemeContext';
 import { Sun, Moon } from 'lucide-react';
 
 const PreferencesTab = () => {

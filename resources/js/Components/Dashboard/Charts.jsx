@@ -1,37 +1,120 @@
-import React, { useEffect, useState } from 'react';
-import {
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    Legend,
-    ResponsiveContainer,
-    LineChart,
-    Line,
-} from 'recharts';
-import Spinner from '../ui/Spinner';
-import csrfFetch from '@/utils/csrfFetch';
+import React, { useEffect, useState, useRef } from "react";
+import csrfFetch from "@/utils/csrfFetch";
+import Spinner from "../ui/Spinner";
+import Chart from "chart.js/auto";
 
-
-export function Charts() {
-    const [chartData, setChartData] = useState([]); // Datos del gráfico
-    const [classes, setClasses] = useState([]); // Lista de clases
-    const [selectedClass, setSelectedClass] = useState(null); // Clase seleccionada
-    const [startDate, setStartDate] = useState(new Date()); // Fecha inicial del rango
-    const [timeFilter, setTimeFilter] = useState('week'); // 'week' o 'month'
+export function StudentRegistrationsChart() {
+    const [chartData, setChartData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    const chartRef = useRef(null); // Referencia al canvas
+    let chartInstance = useRef(null); // Instancia del gráfico
+
+    useEffect(() => {
+        const fetchChartData = async () => {
+            try {
+                setLoading(true);
+                const response = await csrfFetch("/api/stats/altasEstudiantes");
+                if (!response.ok) throw new Error("Error fetching registration data");
+
+                const data = await response.json();
+
+                // Formatear los datos
+                const formattedData = data.map((item) => ({
+                    date: item.date,
+                    total: item.total,
+                }));
+
+                setChartData(formattedData);
+            } catch (err) {
+                console.error(err);
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchChartData();
+    }, []);
+
+    useEffect(() => {
+        if (chartData.length > 0) {
+            renderChart();
+        }
+    }, [chartData]);
+
+    const renderChart = () => {
+        if (chartInstance.current) {
+            chartInstance.current.destroy(); // Destruir el gráfico existente
+        }
+
+        const ctx = chartRef.current.getContext("2d");
+        chartInstance.current = new Chart(ctx, {
+            type: "line",
+            data: {
+                labels: chartData.map((item) => item.date),
+                datasets: [
+                    {
+                        label: "Estudiantes Registrados",
+                        data: chartData.map((item) => item.total),
+                        borderColor: "rgba(59, 130, 246, 1)",
+                        backgroundColor: "rgba(59, 130, 246, 0.2)",
+                        tension: 0.4,
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: "top",
+                    },
+                    title: {
+                        display: true,
+                        text: "Registros de Estudiantes",
+                    },
+                },
+            },
+        });
+    };
+
+    if (loading) return <Spinner />;
+    if (error) return <p>Error: {error}</p>;
+
+    return (
+        <div className="mt-8">
+            <h2 className="text-lg font-semibold text-green-400 mb-4">Registros de Estudiantes</h2>
+            <div className="bg-white p-4 rounded-lg shadow">
+                <canvas ref={chartRef}></canvas>
+            </div>
+        </div>
+    );
+}
+
+
+
+
+
+export function Charts() {
+    const [chartData, setChartData] = useState([]);
+    const [classes, setClasses] = useState([]);
+    const [selectedClass, setSelectedClass] = useState(null);
+    const [startDate, setStartDate] = useState(new Date());
+    const [timeFilter, setTimeFilter] = useState("week");
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    const chartRef = useRef(null); // Referencia al canvas para Chart.js
+    let chartInstance = useRef(null); // Instancia del gráfico
+
     const fetchClasses = async () => {
         try {
-            const response = await csrfFetch('/api/classes'); // Endpoint de clases
-            if (!response.ok) throw new Error('Error fetching classes');
+            const response = await csrfFetch("/api/classes");
+            if (!response.ok) throw new Error("Error fetching classes");
             const data = await response.json();
             setClasses(data);
 
-            // Seleccionar la primera clase por defecto
             if (data.length > 0) {
                 setSelectedClass(data[0].id);
             }
@@ -46,20 +129,18 @@ export function Charts() {
             setLoading(true);
 
             const { start, end } = calculateRange();
-
-            // Construir los parámetros condicionalmente
             const params = new URLSearchParams();
-            if (selectedClass) params.append('class_id', selectedClass);
+
+            if (selectedClass) params.append("class_id", selectedClass);
             if (start && end) {
-                params.append('start_date', start.toISOString().split('T')[0]);
-                params.append('end_date', end.toISOString().split('T')[0]);
+                params.append("start_date", start.toISOString().split("T")[0]);
+                params.append("end_date", end.toISOString().split("T")[0]);
             }
 
             const response = await csrfFetch(`/api/stats/asistencias?${params}`);
-            if (!response.ok) throw new Error('Error fetching attendance data');
-            const data = await response.json();
+            if (!response.ok) throw new Error("Error fetching attendance data");
 
-            // Reformatear los datos si es necesario
+            const data = await response.json();
             const formattedData = data.map((item) => ({
                 day: item.period,
                 presentes: item.presentes,
@@ -76,7 +157,47 @@ export function Charts() {
         }
     };
 
+    const renderChart = () => {
+        if (chartInstance.current) {
+            chartInstance.current.destroy(); // Destruir el gráfico existente
+        }
 
+        const ctx = chartRef.current.getContext("2d");
+        chartInstance.current = new Chart(ctx, {
+            type: "line",
+            data: {
+                labels: chartData.map((item) => item.day),
+                datasets: [
+                    {
+                        label: "Presentes",
+                        data: chartData.map((item) => item.presentes),
+                        borderColor: "rgba(52, 211, 153, 1)",
+                        backgroundColor: "rgba(52, 211, 153, 0.2)",
+                        tension: 0.4,
+                    },
+                    {
+                        label: "Ausentes",
+                        data: chartData.map((item) => item.ausentes),
+                        borderColor: "rgba(248, 113, 113, 1)",
+                        backgroundColor: "rgba(248, 113, 113, 0.2)",
+                        tension: 0.4,
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: "top",
+                    },
+                    title: {
+                        display: true,
+                        text: "Asistencia por Día",
+                    },
+                },
+            },
+        });
+    };
 
     useEffect(() => {
         fetchClasses();
@@ -86,33 +207,37 @@ export function Charts() {
         fetchChartData();
     }, [selectedClass, startDate, timeFilter]);
 
+    useEffect(() => {
+        if (chartData.length > 0) {
+            renderChart();
+        }
+    }, [chartData]);
+
     const calculateRange = () => {
         const today = new Date(startDate);
         let start, end;
 
-        if (timeFilter === 'week') {
+        if (timeFilter === "week") {
             start = new Date(today);
-            start.setDate(today.getDate() - today.getDay()); // Lunes
+            start.setDate(today.getDate() - today.getDay());
             end = new Date(today);
-            end.setDate(today.getDate() + (6 - today.getDay())); // Domingo
-        } else if (timeFilter === 'month') {
-            start = new Date(today.getFullYear(), today.getMonth(), 1); // Primer día del mes
-            end = new Date(today.getFullYear(), today.getMonth() + 1, 0); // Último día del mes
+            end.setDate(today.getDate() + (6 - today.getDay()));
+        } else if (timeFilter === "month") {
+            start = new Date(today.getFullYear(), today.getMonth(), 1);
+            end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
         }
 
         return { start, end };
     };
 
-    const { start, end } = calculateRange();
-
     const changeRange = (direction) => {
         setStartDate((prev) => {
             const newDate = new Date(prev);
 
-            if (timeFilter === 'week') {
-                newDate.setDate(newDate.getDate() + direction * 7); // Sumar/restar una semana
-            } else if (timeFilter === 'month') {
-                newDate.setMonth(newDate.getMonth() + direction); // Sumar/restar un mes
+            if (timeFilter === "week") {
+                newDate.setDate(newDate.getDate() + direction * 7);
+            } else if (timeFilter === "month") {
+                newDate.setMonth(newDate.getMonth() + direction);
             }
 
             return newDate;
@@ -122,10 +247,12 @@ export function Charts() {
     if (loading) return <Spinner />;
     if (error) return <p>Error: {error}</p>;
 
+    const { start, end } = calculateRange();
+
     return (
         <div className="mt-8">
             <h2 className="text-lg font-semibold text-gray-700 mb-4 text-green-400">
-                Asistencia por {timeFilter === 'week' ? 'Semana' : 'Mes'}
+                Asistencia por {timeFilter === "week" ? "Semana" : "Mes"}
             </h2>
 
             {/* Filtros */}
@@ -139,7 +266,7 @@ export function Charts() {
                     <option value="month">Mes</option>
                 </select>
                 <select
-                    value={selectedClass || ''}
+                    value={selectedClass || ""}
                     onChange={(e) => setSelectedClass(e.target.value)}
                     className="border dark:text-black rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
@@ -158,7 +285,7 @@ export function Charts() {
                     onClick={() => changeRange(-1)}
                     className="bg-green-200 hover:bg-orange-600 p-2 dark:text-gray-800 rounded"
                 >
-                    {timeFilter === 'week' ? 'Semana Anterior' : 'Mes Anterior'}
+                    {timeFilter === "week" ? "Semana Anterior" : "Mes Anterior"}
                 </button>
                 <h3 className="text-lg font-semibold">
                     {start.toLocaleDateString()} - {end.toLocaleDateString()}
@@ -167,86 +294,13 @@ export function Charts() {
                     onClick={() => changeRange(1)}
                     className="bg-green-200 hover:bg-orange-600 p-2 dark:text-gray-800 rounded"
                 >
-                    {timeFilter === 'week' ? 'Semana Siguiente' : 'Mes Siguiente'}
+                    {timeFilter === "week" ? "Semana Siguiente" : "Mes Siguiente"}
                 </button>
             </div>
 
             {/* Gráfico */}
             <div className="bg-white p-4 rounded-lg shadow">
-                <ResponsiveContainer width="100%" height={500}>
-                    <LineChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="day" tick={{ fontSize: 12 }} />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Line type="monotone" dataKey="presentes" stroke="#34d399" name="Presentes" />
-                        <Line type="monotone" dataKey="ausentes" stroke="#f87171" name="Ausentes" />
-                    </LineChart>
-                </ResponsiveContainer>
-            </div>
-        </div>
-
-    );
-}
-
-
-
-
-export function StudentRegistrationsChart() {
-    const [chartData, setChartData] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-
-    useEffect(() => {
-        const fetchChartData = async () => {
-            try {
-                setLoading(true);
-                const response = await csrfFetch('/api/stats/altasEstudiantes');
-                if (!response.ok) throw new Error('Error fetching registration data');
-                const data = await response.json();
-
-                // Transformar datos para Recharts
-                const formattedData = data.map((item) => ({
-                    date: item.date,
-                    total: item.total,
-                }));
-
-                setChartData(formattedData);
-            } catch (err) {
-                console.error(err);
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchChartData();
-    }, []);
-
-    if (loading) return <Spinner />;
-    if (error) return <p>Error: {error}</p>;
-
-    return (
-        <div className="mt-8">
-            <h2 className="text-lg font-semibold text-green-400 mb-4">Registros de Estudiantes</h2>
-            <div className="bg-white p-4 rounded-lg shadow">
-                <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Line
-                            type="monotone"
-                            dataKey="total"
-                            stroke="#3b82f6"
-                            strokeWidth={2}
-                            name="Estudiantes"
-                        />
-                    </LineChart>
-                </ResponsiveContainer>
+                <canvas ref={chartRef}></canvas>
             </div>
         </div>
     );

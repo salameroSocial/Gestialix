@@ -32,7 +32,7 @@ export default function AppLayout({ children }) {
     }
 
     return (
-        <div className="flex min-h-screen w-full bg-gray-100 dark:bg-gray-300">
+        <div className="flex min-h-screen w-full bg-gray-100 dark:bg-gray-500">
             <SidebarMenu isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} userData={userData} />
             <div
                 className={`transition-all duration-300 w-full ${isSidebarOpen ? 'sm:ml-64 md:ml-20 ml-0' : 'sm:ml-20 ml-0'

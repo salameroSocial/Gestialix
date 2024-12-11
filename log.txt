@@ -1,0 +1,135 @@
+gestialix/
+│
+├── app/  (Carpeta de Laravel)
+├── bootstrap/  (Carpeta de Laravel)
+├── config/  (Carpeta de Laravel)
+├── database/  (Carpeta de Laravel)
+├── public/
+│   ├── admin/  (Público del módulo Admin UI)
+│   │   ├── css/
+│   │   ├── js/
+│   │   └── index.php
+│
+├── resources/  (Carpeta de Laravel)
+├── routes/  (Carpeta de Laravel)
+│
+├── Admin/  (Carpeta de tu módulo Admin UI)
+│   ├── Controllers/
+│   │   ├── LoginController.php
+│   │   ├── RoleController.php
+│   │   └── UserController.php
+│   │
+│   ├── Models/
+│   │   ├── User.php
+│   │   └── Role.php
+│   │
+│   ├── Views/
+│   │   ├── auth/
+│   │   │   ├── login.php
+│   │   │   ├── list_roles.php
+│   │   │   └── assign_roles.php
+│   │   ├── dashboard.php
+│   │   └── error.php
+│   │
+│   ├── Middleware/
+│   │   └── AuthMiddleware.php
+│   │
+│   ├── config/
+│   │   └── database.php
+│   │
+│   ├── routes/
+│   │   └── web.php
+│   │
+│   └── helpers.php
+│
+├── storage/  (Carpeta de Laravel)
+├── tests/  (Carpeta de Laravel)
+├── vendor/  (Carpeta de Laravel)
+└── .env  (Archivo de Laravel)
+
+
+
+Detalles de la Estructura
+1. Directorio Admin/
+Esta carpeta será independiente y contendrá todo el código relacionado con tu Admin UI.
+
+Controllers/: Aquí defines la lógica de tus controladores. Por ejemplo:
+
+LoginController.php: Gestión de autenticación.
+RoleController.php: Lógica para listar y asignar roles.
+UserController.php: Gestión de usuarios (crear, listar, etc.).
+Models/: Contiene las clases que interactúan con la base de datos.
+
+User.php: Modelo para la tabla users.
+Role.php: Modelo para la tabla roles.
+Views/: Todas las vistas que renderizan HTML. Organízalas por funcionalidad:
+
+auth/: Para páginas relacionadas con autenticación (login.php, list_roles.php, etc.).
+dashboard.php: La vista principal del panel de administración.
+Middleware/:
+
+AuthMiddleware.php: Verifica si un usuario está autenticado antes de permitirle acceder a las rutas.
+routes/:
+
+web.php: Define las rutas de tu módulo Admin UI.
+config/:
+
+database.php: Configuración de la conexión a la base de datos para el módulo Admin UI.
+helpers.php: Utilidades globales para el módulo.
+
+2. Directorio Público para Admin UI
+En public/admin/ puedes alojar los archivos CSS, JavaScript o imágenes específicos para tu Admin UI. También contiene el archivo index.php que actúa como punto de entrada del módulo Admin.
+
+Ejemplo:
+
+arduino
+Copiar código
+gestialix/public/admin/
+│
+├── css/
+│   └── styles.css
+├── js/
+│   └── app.js
+└── index.php
+Contenido de index.php:
+php
+Copiar código
+<?php
+
+// Punto de entrada para el módulo Admin UI
+require_once __DIR__ . '/../../Admin/routes/web.php';
+
+
+
+
+
+
+/admin-ui/
+  ├── public/                # Carpeta pública
+  │     ├── index.php        # Punto de entrada
+  │     ├── css/             # Archivos CSS
+  │     ├── js/              # Archivos JS
+  │
+  ├── app/                   # Lógica principal
+  │     ├── Controllers/     # Controladores
+  │     │     ├── UserController.php
+  │     │     ├── RoleController.php
+  │     │
+  │     ├── Models/          # Modelos
+  │     │     ├── User.php
+  │     │     ├── Role.php
+  │     │     ├── Permission.php
+  │     │
+  │     ├── Views/           # Vistas
+  │           ├── users/
+  │           │     ├── list.php
+  │           │     ├── create.php
+  │           │     ├── edit.php
+  │           ├── roles/
+  │                 ├── list.php
+  │                 ├── create.php
+  │                 ├── edit.php
+  │
+  ├── config/                # Configuraciones
+  │     ├── database.php
+  │     ├── routes.php
