@@ -24,8 +24,8 @@ export default function OccasionalStudents({ occasionalStudents, closeModal, add
     };
 
     return (
-        <Dialog open onClose={closeModal} fullWidth maxWidth="sm">
-            <DialogTitle>Estudiantes No Asignados al Comedor</DialogTitle>
+        <Dialog open={true} fullWidth maxWidth="sm">
+            <DialogTitle>Estudiantes no asignados al comedor</DialogTitle>
             <DialogContent>
                 <ul className="divide-y divide-gray-200 dark:divide-gray-700">
                     {occasionalStudents.map((student) => (
@@ -42,13 +42,14 @@ export default function OccasionalStudents({ occasionalStudents, closeModal, add
                 </ul>
             </DialogContent>
             <DialogActions>
-                <Button onClick={closeModal} color="error" variant="outlined">
+                <Button className='dark:bg-red-400 dark:hover:bg-red-500 dark:text-white' onClick={closeModal} color="error" variant="outlined">
                     Cancelar
                 </Button>
                 <Button
                     onClick={handleSaveOccasionalStudents}
                     color="primary"
                     variant="contained"
+                    className='dark:bg-blue-400 dark:hover:bg-blue-500 dark:text-white'
                 >
                     Guardar
                 </Button>

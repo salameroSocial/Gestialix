@@ -73,6 +73,14 @@ export default function SidebarMenu({ isOpen, toggleSidebar, userData }) {
                     <MenuItem icon={List} label="Asistencias" isOpen={isOpen} onClick={() => navigateTo('/asistencias')} />
                     <MenuItem icon={Settings} label="Configuración" isOpen={isOpen} onClick={() => navigateTo('/settings')} />
                     <MenuItem icon={HelpCircle} label="Ayuda" isOpen={isOpen} onClick={() => navigateTo('/terms')} />
+                    {/* <div className="ml-4">
+                        <h2 className="text-gray-800 dark:text-gray-200 text-sm font-bold">
+                            {auth?.user?.name || 'Usuario'}
+                        </h2>
+                        <p className="text-gray-500 dark:text-gray-400 text-xs">
+                            {auth?.user?.email || ''}
+                        </p>
+                    </div> */}
                 </ul>
             </nav>
 

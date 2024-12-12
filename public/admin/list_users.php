@@ -38,6 +38,8 @@ $users = $pdo->query("
             <?php endforeach; ?>
         </tbody>
     </table>
+
+    <a href="index.php">Volver al inicio</a>
 </body>
 
 </html>

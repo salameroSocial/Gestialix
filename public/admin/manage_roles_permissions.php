@@ -100,6 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <button type="submit" name="assign_permission">Asignar Permiso</button>
     </form>
+    <a href="index.php">Volver al inicio</a>
 </body>
 
 </html>

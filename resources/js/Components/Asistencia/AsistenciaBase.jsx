@@ -7,6 +7,8 @@ import OccasionalStudents from './ModalOcasionales';
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import { StudentIntolerancesModal } from './ModalIntolerancia';
 
+import { UserX, User } from 'lucide-react'
+
 export default function Asistencia() {
     const [attendanceData, setAttendanceData] = useState([]);
     const [classes, setClasses] = useState([]);
@@ -34,31 +36,6 @@ export default function Asistencia() {
     };
 
 
-
-    // useEffect(() => {
-    //     const fetchInitialData = async () => {
-    //         try {
-    //             setLoading(true);
-    //             const classResponse = await csrfFetch('/api/classes');
-    //             if (!classResponse.ok) throw new Error('Error fetching classes');
-    //             const classData = await classResponse.json();
-    //             setClasses(classData);
-    //             setSelectedClass(classData[0]?.id || null);
-
-    //             if (classData[0]?.id) {
-    //                 await fetchAttendanceData(currentDay, classData[0]?.id);
-    //             }
-    //         } catch (err) {
-    //             console.error(err);
-    //             setError(err.message);
-    //         } finally {
-    //             setLoading(false);
-    //         }
-    //     };
-
-    //     fetchInitialData();
-    // }, []);
-
     // Carga inicial de clases y datos relacionados
     useEffect(() => {
         const fetchInitialData = async () => {
@@ -68,13 +45,14 @@ export default function Asistencia() {
                 const classResponse = await csrfFetch('/api/classes');
                 if (!classResponse.ok) throw new Error('Error fetching classes');
                 const classData = await classResponse.json();
-                console.log('Classes Traidas:', classData);
-                setClasses(classData);
-                setSelectedClass(classData[0]?.id || null); // Selecciona la primera clase por defecto
 
-                // Si hay una clase, carga los datos iniciales de asistencia
+                console.log('Clases Traídas:', classData);
+
+                setClasses(classData);
+                setSelectedClass(classData[0]?.id || null); // Selecciona la primera clase
+
                 if (classData[0]?.id) {
-                    await fetchAttendanceData(currentDay, classData[0]?.id);
+                    await fetchAttendanceData(currentDay, classData[0].id);
                 }
             } catch (err) {
                 console.error(err);
@@ -85,29 +63,34 @@ export default function Asistencia() {
         };
 
         fetchInitialData();
-    }, [currentDay]); // `currentDay` puede cambiar si seleccionas otra fecha
+    }, [currentDay]);
+
 
     // Actualiza los estudiantes ocasionales al cambiar la clase seleccionada
+    const fetchOccasionalStudents = async (date, classId) => {
+        try {
+            const response = await csrfFetch(`/api/ocasionales/get`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fecha: date, clase_id: classId }),
+            });
+
+            if (!response.ok) throw new Error('Error al obtener los estudiantes ocasionales');
+            const data = await response.json();
+            console.log('Estudiantes ocasionales:', data);
+            setOccasionalStudentsFromDB(data);
+        } catch (err) {
+            console.error(err);
+            alert('Hubo un problema al cargar los estudiantes ocasionales.');
+        }
+    };
+
+    // Llamar a la función cuando cambie la fecha o la clase seleccionada
     useEffect(() => {
-        const fetchOccasionalStudents = async () => {
-            try {
-                if (!selectedClass) return; // Evita ejecutar si no hay clase seleccionada
-
-                console.log(`Fetching occasional students for class ${selectedClass}...`);
-                const occasionalResponse = await csrfFetch(`/api/ocasionales?class_id=${selectedClass}`);
-                if (!occasionalResponse.ok) throw new Error('Error al obtener los estudiantes ocasionales');
-                const occasionalData = await occasionalResponse.json();
-                console.log('Ocassional students:', occasionalData);
-                setOccasionalStudentsFromDB(occasionalData);
-            } catch (err) {
-                console.error(err);
-                setError(err.message);
-            }
-        };
-
-        fetchOccasionalStudents();
-    }, [selectedClass]); // Solo se ejecuta cuando cambia `selectedClass`
-
+        if (selectedClass && currentDay) {
+            fetchOccasionalStudents(currentDay, selectedClass);
+        }
+    }, [selectedClass, currentDay]);
 
     const fetchAttendanceData = async (date, classId) => {
         try {
@@ -226,8 +209,8 @@ export default function Asistencia() {
 
     const handleClassChange = async (classId) => {
         try {
-            setSelectedClass(classId); // Actualiza el estado de la clase seleccionada
-            await fetchAttendanceData(currentDay, classId); // Carga los datos de asistencia para la nueva clase
+            setSelectedClass(Number(classId)); // Convierte el ID a número
+            await fetchAttendanceData(currentDay, Number(classId)); // Carga los datos de asistencia
         } catch (err) {
             console.error('Error al cambiar de clase:', err);
         }
@@ -240,63 +223,172 @@ export default function Asistencia() {
             return;
         }
 
-        const classData = classes.find((cls) => cls.id === selectedClass);
-        if (classData) {
-            const assignedIds = new Set(occasionalStudentsFromDB.map((oc) => oc.estudiante_id));
-            const notAssignedStudents = classData.estudiantes.filter(
-                (student) => !student.asignado_comedor && !assignedIds.has(student.id)
-            );
-            setOccasionalStudents(notAssignedStudents);
+        const classData = classes.find((cls) => cls.id === Number(selectedClass));
+        if (!classData) {
+            console.error('Clase seleccionada no encontrada.');
+            alert('Clase no encontrada.');
+            return;
         }
+
+        const estudiantes = classData.estudiantes || [];
+        if (estudiantes.length === 0) {
+            console.error('No hay estudiantes en esta clase.');
+            alert('No se encontraron estudiantes para esta clase.');
+            return;
+        }
+
+        console.log('Clase seleccionada:', classData);
+
+        // Verificar si occasionalStudentsFromDB es un array
+        if (!Array.isArray(occasionalStudentsFromDB)) {
+            console.error('occasionalStudentsFromDB no es un array:', occasionalStudentsFromDB);
+            alert('Error al cargar los datos de estudiantes ocasionales.');
+            return;
+        }
+
+        const assignedIds = new Set(occasionalStudentsFromDB.map((oc) => oc.estudiante_id));
+        console.log('IDs de estudiantes ocasionales:', assignedIds);
+
+        const notAssignedStudents = estudiantes.filter(
+            (student) => !student.asignado_comedor && !assignedIds.has(student.id)
+        );
+
+        console.log('Estudiantes no asignados al comedor:', notAssignedStudents);
+
+        setOccasionalStudents(notAssignedStudents);
         setIsOccasionalModalOpen(true);
     };
 
+
+
     const addOccasionalStudents = async (occasionalStudents, classId) => {
-        if (!classId) {
+        try {
+            const responses = await Promise.all(occasionalStudents.map((student) =>
+                csrfFetch('/api/ocasionales', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        estudiante_id: student.id,
+                        clase_id: classId,
+                        fecha: currentDay, // Fecha seleccionada
+                    }),
+                })
+            ));
+
+            // Actualizar el estado con los nuevos ocasionales asignados
+            fetchOccasionalStudents(currentDay, classId);
+            alert('Estudiantes ocasionales asignados para el día.');
+        } catch (error) {
+            console.error('Error al asignar estudiantes ocasionales:', error);
+            alert('Hubo un problema al asignar estudiantes ocasionales.');
+        }
+    };
+
+
+
+    // const addOccasionalStudents = async (occasionalStudents, classId) => {
+    //     if (!classId) {
+    //         alert('Por favor, selecciona una clase primero.');
+    //         return;
+    //     }
+
+    //     try {
+    //         console.log('Estudiantes ocasionales a guardar:', occasionalStudents);
+    //         const responses = await Promise.all(occasionalStudents.map((student) =>
+    //             csrfFetch('/api/ocasionales', {
+    //                 method: 'POST',
+    //                 headers: {
+    //                     'Content-Type': 'application/json',
+    //                 },
+    //                 body: JSON.stringify({
+    //                     estudiante_id: student.id,
+    //                     clase_id: classId,
+    //                     fecha: new Date().toISOString().split('T')[0],
+    //                 }),
+    //             })
+    //         ));
+
+    //         const results = await Promise.all(responses.map(response => {
+    //             if (!response.ok) {
+    //                 return response.text().then(text => {
+    //                     throw new Error(`Error en la solicitud: ${text}`);
+    //                 });
+    //             }
+    //             return response.json();
+    //         }));
+
+    //         // Actualiza directamente el estado con los nuevos estudiantes ocasionales
+    //         setOccasionalStudentsFromDB((prev) => [
+    //             ...prev,
+    //             ...results.map((result, index) => ({
+    //                 estudiante_id: occasionalStudents[index].id,
+    //                 estudiante: occasionalStudents[index],
+    //                 clase_id: classId,
+    //                 fecha: new Date().toISOString().split('T')[0],
+    //             })),
+    //         ]);
+
+    //         setDisplayOccasionalStudents(prev => [...prev, ...occasionalStudents]);
+
+    //         console.log('Ocasionales guardados:', results);
+    //         alert('Estudiantes ocasionales guardados correctamente.');
+    //     } catch (error) {
+    //         console.error('Error al guardar los estudiantes ocasionales:', error);
+    //         alert('Hubo un problema al guardar los estudiantes ocasionales.');
+    //     }
+    // };
+
+
+    const handleUnassignOccasional = async (studentId) => {
+        if (!selectedClass) {
             alert('Por favor, selecciona una clase primero.');
             return;
         }
 
+        const currentDate = new Date().toISOString().split('T')[0]; // Fecha actual
+
         try {
-            console.log('Estudiantes ocasionales a guardar:', occasionalStudents);
-            const promises = occasionalStudents.map(async (student) => {
-                const response = await csrfFetch('/api/ocasionales', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        estudiante_id: student.id,
-                        clase_id: classId,
-                        fecha: new Date().toISOString().split('T')[0],
-                    }),
-                });
-
-                if (!response.ok) {
-                    const text = await response.text();
-                    throw new Error(`Error en la solicitud: ${text}`);
-                }
-
-                return response.json();
+            const response = await csrfFetch(`/api/ocasionales/${studentId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    estudiante_id: studentId,
+                    fecha: currentDate, // Pasar la fecha actual
+                }),
             });
 
-            const results = await Promise.all(promises);
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Error al desasignar: ${errorText}`);
+            }
 
-            // Agrega los ocasionales al estado de display
-            setDisplayOccasionalStudents((prev) => [...prev, ...occasionalStudents]);
+            // Eliminar del estado local solo el ocasional del día actual
+            setOccasionalStudentsFromDB((prev) =>
+                prev.filter(
+                    (student) => !(student.estudiante_id === studentId && student.fecha === currentDate)
+                )
+            );
 
-            console.log('Ocasionales guardados:', results);
-            alert('Estudiantes ocasionales guardados correctamente.');
-        } catch (error) {
-            console.error('Error al guardar los estudiantes ocasionales:', error);
-            alert('Hubo un problema al guardar los estudiantes ocasionales.');
+            alert('Estudiante ocasional desasignado correctamente para hoy.');
+        } catch (err) {
+            console.error('Error al desasignar estudiante ocasional:', err);
+            alert('Hubo un problema al desasignar al estudiante ocasional.');
         }
     };
+
 
     // Cerrar modal
     const closeOccasionalModal = () => {
         setIsOccasionalModalOpen(false);
     };
+
+    // const currentDate = new Date().toISOString().split('T')[0];
+    // const todayOccasionals = occasionalStudentsFromDB.filter(
+    //     (student) => student.fecha === currentDate
+    // );
+
 
     return (
         <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-2">
@@ -423,30 +515,53 @@ export default function Asistencia() {
                         </div>
                         {/* Tabla para mostrar ocasionales */}
                         {occasionalStudentsFromDB.length > 0 && (
-                            <div className="overflow-x-auto mt-6">
-                                <table className="w-full border-collapse border border-gray-300 dark:border-gray-700">
-                                    <thead>
-                                        <tr className="bg-gray-50 dark:bg-gray-700">
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                            <div className="w-full overflow-x-auto shadow-md sm:rounded-lg mt-4">
+                                <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                                    <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                                        <tr>
+                                            <th scope="col" className="px-6 py-3">
                                                 Alumno
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            <th scope="col" className="px-6 py-3">
                                                 Tipo
+                                            </th>
+                                            <th scope="col" className="px-6 py-3 text-right">
+                                                Acción
                                             </th>
                                         </tr>
                                     </thead>
-                                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                        {occasionalStudentsFromDB.map((student) => (
-                                            <tr key={student.estudiante_id}>
-                                                <td className="px-6 py-4 whitespace-nowrap text-gray-800 dark:text-gray-200">
-                                                    {student.estudiante.nombre} {student.estudiante.apellidos}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-gray-800 dark:text-gray-200">
-                                                    <div className="flex items-center space-x-2">
-                                                        <Star className="w-5 h-5 text-yellow-500" />
-                                                        <span>Ocasional</span>
+                                    <tbody>
+                                        {occasionalStudentsFromDB && occasionalStudentsFromDB.map((student) => (
+                                            <tr
+                                                key={student.estudiante_id}
+                                                className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                                            >
+                                                <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                                    <div className="flex items-center space-x-3">
+                                                        <User className="h-5 w-5 text-gray-500 dark:text-gray-300" />
+                                                        <span className="text-gray-800 dark:text-gray-200">
+                                                            {student.nombre} {student.apellidos}
+                                                        </span>
                                                     </div>
                                                 </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center space-x-2">
+                                                        <Star className="h-5 w-5 text-yellow-500 dark:text-yellow-300" />
+                                                        <span className="font-semibold text-yellow-600 dark:text-yellow-400">
+                                                            Ocasional
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 text-right">
+                                                    <button
+                                                        onClick={() => handleUnassignOccasional(student.estudiante_id)}
+                                                        className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-lg shadow-md dark:bg-red-600 hover:bg-red-600 dark:hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-400 dark:focus:ring-red-500"
+                                                    >
+                                                        <UserX className="h-4 w-4 mr-2" />
+                                                        Desasignar
+                                                    </button>
+                                                </td>
+
                                             </tr>
                                         ))}
                                     </tbody>
@@ -478,15 +593,14 @@ export default function Asistencia() {
                         <div className="bg-yellow-100 dark:bg-yellow-800 p-4 rounded-lg">
                             <p className="text-yellow-800 dark:text-yellow-300 font-medium">Ocasional</p>
                             <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                                {/* Si `esOcasional` es el indicador */}
+                                {attendanceData.filter((record) => record.esOcasional === true).length}
 
-                                {attendanceData.filter((record) => record.es_dia_suelto === 0).length}
-                                {/* {
-                                    attendanceData.filter(
-                                        (record) => record.esOcasional === true // Verifica si es ocasional
-                                    ).length
-                                } */}
+                                {/* Si `es_dia_suelto` es el indicador */}
+                                {/* attendanceData.filter((record) => record.es_dia_suelto === 1).length */}
                             </p>
                         </div>
+
                     </div>
                 </div>
             </div>

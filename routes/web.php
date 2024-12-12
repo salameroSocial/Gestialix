@@ -49,7 +49,7 @@ Route::middleware(['auth'])->group(function () {
         $hasRole = DB::table('model_has_roles')
             ->join('roles', 'roles.id', '=', 'model_has_roles.role_id')
             ->where('model_has_roles.model_id', $user->id)
-            ->where('roles.name', 'admin')
+            ->where('roles.name', 'approved_user')
             ->exists();
 
         if (!$hasRole) {
@@ -62,11 +62,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/pedos', function () {
             return '+k2';
         });
-
-
-
-
-
 
 
         // Route::middleware(['auth', 'role:admin'])->group(function () {
@@ -130,8 +125,10 @@ Route::middleware(['auth'])->group(function () {
 
                 // Ocasionales API
                 Route::get('/ocasionales', [OcasionalesController::class, 'index']);
-                Route::post('/ocasionales', [OcasionalesController::class, 'store']);
+                Route::post('/ocasionales', [OcasionalesController::class, 'assignOccasional']);
                 Route::get('/ocasionales/{id}', [OcasionalesController::class, 'show']);
+                Route::post('/ocasionales/get', [OcasionalesController::class, 'getByDate'])->name('ocasionales.getByDate');
+                Route::delete('/ocasionales/{id}', [OcasionalesController::class, 'unassignOccasional']);
 
                 // Student API
                 Route::get('/students', [EstudianteController::class, 'index']);
