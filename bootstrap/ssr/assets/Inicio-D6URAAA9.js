@@ -1,11 +1,16 @@
 import { jsx, jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from "react";
 import { Search, User, ClipboardCheck, Calendar, BookOpen } from "lucide-react";
-import { A as AppLayout } from "./AppLayout-DNQewRVV.js";
+import { A as AppLayout } from "./AppLayout-CWhgbinT.js";
 import { c as csrfFetch } from "./csrfFetch-DJvw9o1x.js";
 import "@inertiajs/inertia";
-import "./apiClient-DgzgG0IP.js";
+import "../app.js";
 import "axios";
+import "@inertiajs/react";
+import "react-dom/client";
+import "@mui/material/styles/index.js";
+import "@mui/material";
+import "./apiClient-DgzgG0IP.js";
 const DashboardCard = ({ title, value, icon: Icon, color }) => /* @__PURE__ */ jsxs("div", { className: "bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 flex items-center", children: [
   /* @__PURE__ */ jsx("div", { className: `p-4 rounded-full mr-4 ${color}`, children: /* @__PURE__ */ jsx(Icon, { className: "w-6 h-6 text-white" }) }),
   /* @__PURE__ */ jsxs("div", { children: [
@@ -58,17 +63,17 @@ const Dashboard = () => {
       ] })
     ] }) }),
     /* @__PURE__ */ jsx("main", { className: "flex-1 overflow-y-auto p-6", children: /* @__PURE__ */ jsxs("div", { className: "max-w-7xl mx-auto", children: [
-      /* @__PURE__ */ jsx("div", { className: "grid grid-cols-1 gap-4 md:grid-cols-2 lg\n                        :grid-cols-4", children: summaryData.map((item, index) => /* @__PURE__ */ jsx("div", { className: "bg-white dark:bg-gray-800 rounded-lg shadow-md\n                                :p-4", children: /* @__PURE__ */ jsxs("div", { className: "flex items-center space-x-3", children: [
+      /* @__PURE__ */ jsx("div", { className: "grid grid-cols-1 gap-4 md:grid-cols-2 lg\r\n                        :grid-cols-4", children: summaryData.map((item, index) => /* @__PURE__ */ jsx("div", { className: "bg-white dark:bg-gray-800 rounded-lg shadow-md\r\n                                :p-4", children: /* @__PURE__ */ jsxs("div", { className: "flex items-center space-x-3", children: [
         /* @__PURE__ */ jsx(
           "div",
           {
             className: "bg-gray-100 dark:bg-gray-700 rounded-full p-2",
-            children: /* @__PURE__ */ jsx("img", { src: item.icon, alt: item.title, className: "w-6 h-\n                                            6" })
+            children: /* @__PURE__ */ jsx("img", { src: item.icon, alt: item.title, className: "w-6 h-\r\n                                            6" })
           }
         ),
         /* @__PURE__ */ jsxs("div", { children: [
-          /* @__PURE__ */ jsx("h3", { className: "text-lg font-semibold text-gray-700 dark:text-gray-\n                                                200", children: item.title }),
-          /* @__PURE__ */ jsx("p", { className: "text-2xl font-bold text-gray-900 dark:text-gray-\n                                                100", children: item.value })
+          /* @__PURE__ */ jsx("h3", { className: "text-lg font-semibold text-gray-700 dark:text-gray-\r\n                                                200", children: item.title }),
+          /* @__PURE__ */ jsx("p", { className: "text-2xl font-bold text-gray-900 dark:text-gray-\r\n                                                100", children: item.value })
         ] })
       ] }) }, index)) }),
       /* @__PURE__ */ jsx("div", { className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6", children: summaryData.map((item, index) => /* @__PURE__ */ jsx(

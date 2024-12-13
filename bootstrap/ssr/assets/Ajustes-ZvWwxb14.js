@@ -3,10 +3,15 @@ import { useState } from "react";
 import { Inertia } from "@inertiajs/inertia";
 import { toast } from "react-toastify";
 import { c as csrfFetch } from "./csrfFetch-DJvw9o1x.js";
-import { A as AppLayout } from "./AppLayout-DNQewRVV.js";
+import { A as AppLayout } from "./AppLayout-CWhgbinT.js";
 import "lucide-react";
-import "./apiClient-DgzgG0IP.js";
+import "../app.js";
 import "axios";
+import "@inertiajs/react";
+import "react-dom/client";
+import "@mui/material/styles/index.js";
+import "@mui/material";
+import "./apiClient-DgzgG0IP.js";
 function Input({ label, ...props }) {
   return /* @__PURE__ */ jsxs("div", { children: [
     /* @__PURE__ */ jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: label }),

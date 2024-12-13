@@ -1,7 +1,8 @@
 import { jsxs, jsx } from "react/jsx-runtime";
-import { useState, useEffect } from "react";
+import { useState, useContext, useEffect } from "react";
 import { Inertia } from "@inertiajs/inertia";
 import { X, Menu, Sun, Moon, Home, BarChart, Users, List, Settings, HelpCircle, LogOut } from "lucide-react";
+import { T as ThemeContext } from "../app.js";
 import { a as apiClient } from "./apiClient-DgzgG0IP.js";
 const MenuItem = ({ icon: Icon, label, isOpen, onClick }) => /* @__PURE__ */ jsxs(
   "li",
@@ -16,19 +17,14 @@ const MenuItem = ({ icon: Icon, label, isOpen, onClick }) => /* @__PURE__ */ jsx
   }
 );
 function SidebarMenu({ isOpen, toggleSidebar, userData }) {
-  var _a, _b;
   const [isMobile, setIsMobile] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+  const { darkMode, toggleTheme } = useContext(ThemeContext);
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", darkMode);
-  }, [darkMode]);
-  const toggleTheme = () => setDarkMode(!darkMode);
   const navigateTo = (route) => {
     Inertia.visit(route);
     if (isMobile) toggleSidebar();
@@ -48,10 +44,10 @@ function SidebarMenu({ isOpen, toggleSidebar, userData }) {
           "button",
           {
             onClick: toggleSidebar,
-            className: `absolute top-4 -right-12 bg-white dark:bg-white p-2 rounded-full shadow-md transition-transform duration-300 ease-in-out
+            className: `absolute top-4 -right-12 bg-white dark:bg-gray-900 p-2 rounded-full shadow-md transition-transform duration-300 ease-in-out
                             ${isOpen ? "rotate-180" : ""}`,
             "aria-label": isOpen ? "Cerrar menú" : "Abrir menú",
-            children: isOpen ? /* @__PURE__ */ jsx(X, { className: "w-6 h-6 text-gray-600 dark:text-black" }) : /* @__PURE__ */ jsx(Menu, { className: "w-6 h-6 text-gray-600 dark:text-gray-300" })
+            children: isOpen ? /* @__PURE__ */ jsx(X, { className: "w-6 h-6 text-gray-600 dark:text-white" }) : /* @__PURE__ */ jsx(Menu, { className: "w-6 h-6 text-gray-600 dark:text-gray-300" })
           }
         ),
         /* @__PURE__ */ jsx("div", { className: `flex items-center justify-center h-20 ${isOpen ? "px-4" : ""}`, children: /* @__PURE__ */ jsxs("a", { href: "/dashboard", target: "_blank", children: [
@@ -75,13 +71,7 @@ function SidebarMenu({ isOpen, toggleSidebar, userData }) {
           /* @__PURE__ */ jsx(MenuItem, { icon: Users, label: "Clases", isOpen, onClick: () => navigateTo("/clases") }),
           /* @__PURE__ */ jsx(MenuItem, { icon: List, label: "Asistencias", isOpen, onClick: () => navigateTo("/asistencias") }),
           /* @__PURE__ */ jsx(MenuItem, { icon: Settings, label: "Configuración", isOpen, onClick: () => navigateTo("/settings") }),
-          /* @__PURE__ */ jsx(MenuItem, { icon: HelpCircle, label: "Ayuda", isOpen, onClick: () => navigateTo("/terms") }),
-          /* @__PURE__ */ jsxs("div", { className: `p-4 ${isOpen ? "text-center" : "flex justify-center"}`, children: [
-            isOpen ? /* @__PURE__ */ jsx("h2", { className: "text-gray-800 dark:text-gray-200 text-sm font-bold", children: ((_a = userData == null ? void 0 : userData.user) == null ? void 0 : _a.name) || "Usuario" }) : /* @__PURE__ */ jsx("span", { className: "w-2 h-2 bg-orange-500 rounded-full" }),
-            " ",
-            /* @__PURE__ */ jsx("br", {}),
-            isOpen && /* @__PURE__ */ jsx("p", { className: "text-gray-500 dark:text-gray-400 text-xs", children: ((_b = userData == null ? void 0 : userData.user) == null ? void 0 : _b.email) || "" })
-          ] })
+          /* @__PURE__ */ jsx(MenuItem, { icon: HelpCircle, label: "Ayuda", isOpen, onClick: () => navigateTo("/terms") })
         ] }) }),
         /* @__PURE__ */ jsx(MenuItem, { icon: LogOut, label: "Cerrar sesión", isOpen, onClick: handleLogout }),
         /* @__PURE__ */ jsx("div", { className: `p-4 ${isOpen ? "text-center" : "flex justify-center"}`, children: isOpen ? /* @__PURE__ */ jsx("p", { className: "text-sm text-gray-500 dark:text-gray-400", children: "© 2024 Gestialix" }) : /* @__PURE__ */ jsx("span", { className: "w-2 h-2 bg-green-500 rounded-full" }) })
@@ -163,7 +153,7 @@ function AppLayout({ children }) {
   if (loading) {
     return /* @__PURE__ */ jsx(Spinner, {});
   }
-  return /* @__PURE__ */ jsxs("div", { className: "flex min-h-screen w-full bg-gray-100 dark:bg-gray-300", children: [
+  return /* @__PURE__ */ jsxs("div", { className: "flex min-h-screen w-full bg-gray-100 dark:bg-gray-500", children: [
     /* @__PURE__ */ jsx(SidebarMenu, { isOpen: isSidebarOpen, toggleSidebar, userData }),
     /* @__PURE__ */ jsxs(
       "div",

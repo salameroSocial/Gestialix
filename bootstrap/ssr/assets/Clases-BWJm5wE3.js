@@ -1,5 +1,5 @@
 import { jsxs, jsx, Fragment } from "react/jsx-runtime";
-import { A as AppLayout } from "./AppLayout-DNQewRVV.js";
+import { A as AppLayout } from "./AppLayout-CWhgbinT.js";
 import { useState, useEffect, forwardRef, useImperativeHandle, useRef, useReducer } from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
@@ -9,8 +9,12 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import { c as csrfFetch } from "./csrfFetch-DJvw9o1x.js";
 import "@inertiajs/inertia";
 import "lucide-react";
-import "./apiClient-DgzgG0IP.js";
+import "../app.js";
 import "axios";
+import "@inertiajs/react";
+import "react-dom/client";
+import "@mui/material/styles/index.js";
+import "./apiClient-DgzgG0IP.js";
 const EditStudentModal = ({ open, onClose, onSave, studentData = {} }) => {
   const [formData, setFormData] = useState({
     studentId: "",
@@ -914,10 +918,21 @@ function ClaseManagement() {
       console.error("Error al actualizar el estudiante:", error);
     }
   };
-  const filteredClasses = classes.filter(
-    (cls) => cls.nombre.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-  console.log("Clases filtradas:", filteredClasses);
+  const processedClasses = classes.filter((cls) => {
+    return cls.nombre.toLowerCase().includes(searchTerm.toLowerCase());
+  }).map((cls) => {
+    const sortedEstudiantes = [...cls.estudiantes || []].sort((a, b) => {
+      if (orderBy === "nombre") {
+        return (a.nombre || "").localeCompare(b.nombre || "");
+      } else if (orderBy === "apellidos") {
+        return (a.apellidos || "").localeCompare(b.apellidos || "");
+      } else if (orderBy === "asignado") {
+        return (a.asignado_comedor ? 1 : 0) - (b.asignado_comedor ? 1 : 0);
+      }
+      return 0;
+    });
+    return { ...cls, estudiantes: sortedEstudiantes };
+  });
   return /* @__PURE__ */ jsxs(Container, { maxWidth: "xl", className: "h-full mb-8 mt-0", children: [
     /* @__PURE__ */ jsx(ToastManager, { ref: toastRef }),
     /* @__PURE__ */ jsx(Box, { sx: { py: 4 }, children: /* @__PURE__ */ jsxs(
@@ -998,7 +1013,7 @@ function ClaseManagement() {
         ]
       }
     ) }),
-    /* @__PURE__ */ jsx(Grid, { container: true, spacing: 3, children: classes.map((clase) => {
+    /* @__PURE__ */ jsx(Grid, { container: true, spacing: 3, children: processedClasses.map((clase) => {
       return /* @__PURE__ */ jsx(Grid, { item: true, xs: 12, sm: 6, md: 4, children: /* @__PURE__ */ jsx(
         StudentList,
         {

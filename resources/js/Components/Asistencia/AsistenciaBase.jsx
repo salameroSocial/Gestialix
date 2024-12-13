@@ -6,7 +6,6 @@ import csrfFetch from '@/utils/csrfFetch';
 import OccasionalStudents from './ModalOcasionales';
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import { StudentIntolerancesModal } from './ModalIntolerancia';
-
 import { UserX, User } from 'lucide-react'
 
 export default function Asistencia() {
@@ -283,61 +282,6 @@ export default function Asistencia() {
             alert('Hubo un problema al asignar estudiantes ocasionales.');
         }
     };
-
-
-
-    // const addOccasionalStudents = async (occasionalStudents, classId) => {
-    //     if (!classId) {
-    //         alert('Por favor, selecciona una clase primero.');
-    //         return;
-    //     }
-
-    //     try {
-    //         console.log('Estudiantes ocasionales a guardar:', occasionalStudents);
-    //         const responses = await Promise.all(occasionalStudents.map((student) =>
-    //             csrfFetch('/api/ocasionales', {
-    //                 method: 'POST',
-    //                 headers: {
-    //                     'Content-Type': 'application/json',
-    //                 },
-    //                 body: JSON.stringify({
-    //                     estudiante_id: student.id,
-    //                     clase_id: classId,
-    //                     fecha: new Date().toISOString().split('T')[0],
-    //                 }),
-    //             })
-    //         ));
-
-    //         const results = await Promise.all(responses.map(response => {
-    //             if (!response.ok) {
-    //                 return response.text().then(text => {
-    //                     throw new Error(`Error en la solicitud: ${text}`);
-    //                 });
-    //             }
-    //             return response.json();
-    //         }));
-
-    //         // Actualiza directamente el estado con los nuevos estudiantes ocasionales
-    //         setOccasionalStudentsFromDB((prev) => [
-    //             ...prev,
-    //             ...results.map((result, index) => ({
-    //                 estudiante_id: occasionalStudents[index].id,
-    //                 estudiante: occasionalStudents[index],
-    //                 clase_id: classId,
-    //                 fecha: new Date().toISOString().split('T')[0],
-    //             })),
-    //         ]);
-
-    //         setDisplayOccasionalStudents(prev => [...prev, ...occasionalStudents]);
-
-    //         console.log('Ocasionales guardados:', results);
-    //         alert('Estudiantes ocasionales guardados correctamente.');
-    //     } catch (error) {
-    //         console.error('Error al guardar los estudiantes ocasionales:', error);
-    //         alert('Hubo un problema al guardar los estudiantes ocasionales.');
-    //     }
-    // };
-
 
     const handleUnassignOccasional = async (studentId) => {
         if (!selectedClass) {

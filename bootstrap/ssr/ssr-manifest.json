@@ -1,7 +1,7 @@
 {
   "node_modules/laravel-vite-plugin/inertia-helpers/index.js": [],
   "node_modules/react-datepicker/dist/react-datepicker.css": [
-    "/build/assets/AttendanceCrud-QVRopFAL.js",
+    "/build/assets/AttendanceCrud-DhOEQSJo.js",
     "/build/assets/AttendanceCrud-DqUanXUh.css"
   ],
   "resources/css/app.css": [],
@@ -9,43 +9,43 @@
     "/build/assets/ApplicationLogo-xMpxFOcX.js"
   ],
   "resources/js/Components/Asistencia/AsistenciaBase.jsx": [
-    "/build/assets/AttendanceCrud-QVRopFAL.js",
+    "/build/assets/AttendanceCrud-DhOEQSJo.js",
     "/build/assets/AttendanceCrud-DqUanXUh.css"
   ],
   "resources/js/Components/Asistencia/ModalIntolerancia.jsx": [
-    "/build/assets/AttendanceCrud-QVRopFAL.js",
+    "/build/assets/AttendanceCrud-DhOEQSJo.js",
     "/build/assets/AttendanceCrud-DqUanXUh.css"
   ],
   "resources/js/Components/Asistencia/ModalOcasionales.jsx": [
-    "/build/assets/AttendanceCrud-QVRopFAL.js",
+    "/build/assets/AttendanceCrud-DhOEQSJo.js",
     "/build/assets/AttendanceCrud-DqUanXUh.css"
   ],
   "resources/js/Components/Clases/ClaseManagement.jsx": [
-    "/build/assets/Clases-3aLHxB5c.js"
+    "/build/assets/Clases-BWJm5wE3.js"
   ],
   "resources/js/Components/Clases/components/AddEditClassModal.jsx": [
-    "/build/assets/Clases-3aLHxB5c.js"
+    "/build/assets/Clases-BWJm5wE3.js"
   ],
   "resources/js/Components/Clases/components/AddStudentModal.jsx": [
-    "/build/assets/Clases-3aLHxB5c.js"
+    "/build/assets/Clases-BWJm5wE3.js"
   ],
   "resources/js/Components/Clases/components/Clase.jsx": [
-    "/build/assets/Clases-3aLHxB5c.js"
+    "/build/assets/Clases-BWJm5wE3.js"
   ],
   "resources/js/Components/Clases/components/EditStudentModal.jsx": [
-    "/build/assets/Clases-3aLHxB5c.js"
+    "/build/assets/Clases-BWJm5wE3.js"
   ],
   "resources/js/Components/Clases/reducers/classesReducer.js": [
-    "/build/assets/Clases-3aLHxB5c.js"
+    "/build/assets/Clases-BWJm5wE3.js"
   ],
   "resources/js/Components/DangerButton.jsx": [
     "/build/assets/DeleteUserForm-D2xBGxMS.js"
   ],
   "resources/js/Components/Dashboard/Charts.jsx": [
-    "/build/assets/Index-Cs76SDGV.js"
+    "/build/assets/Index-CSL70Abi.js"
   ],
   "resources/js/Components/Date/Picker.jsx": [
-    "/build/assets/AttendanceCrud-QVRopFAL.js",
+    "/build/assets/AttendanceCrud-DhOEQSJo.js",
     "/build/assets/AttendanceCrud-DqUanXUh.css"
   ],
   "resources/js/Components/Dropdown.jsx": [
@@ -73,7 +73,7 @@
     "/build/assets/DeleteUserForm-D2xBGxMS.js"
   ],
   "resources/js/Components/Settings/management.jsx": [
-    "/build/assets/Ajustes-BHH7lW5Q.js"
+    "/build/assets/Ajustes-ZvWwxb14.js"
   ],
   "resources/js/Components/SocialLoginButton.jsx": [
     "/build/assets/Login-9XEKNqkB.js"
@@ -82,19 +82,19 @@
     "/build/assets/TextInput-CCgNZyEO.js"
   ],
   "resources/js/Components/ToastManager.jsx": [
-    "/build/assets/Clases-3aLHxB5c.js"
+    "/build/assets/Clases-BWJm5wE3.js"
   ],
   "resources/js/Components/ui/Buttons.jsx": [
     "/build/assets/Buttons-D9lSxtz5.js"
   ],
   "resources/js/Components/ui/Forms.jsx": [
-    "/build/assets/Ajustes-BHH7lW5Q.js"
+    "/build/assets/Ajustes-ZvWwxb14.js"
   ],
   "resources/js/Components/ui/Logo.jsx": [
     "/build/assets/Logo-BI89IjeP.js"
   ],
   "resources/js/Components/ui/Spinner.jsx": [
-    "/build/assets/AppLayout-DNQewRVV.js"
+    "/build/assets/AppLayout-CWhgbinT.js"
   ],
   "resources/js/Components/ui/WordSlider.jsx": [
     "/build/assets/Welcome-Potcq3-H.js"
@@ -103,7 +103,7 @@
     "/build/assets/footer-BJKdI4B5.js"
   ],
   "resources/js/Layouts/AppLayout.jsx": [
-    "/build/assets/AppLayout-DNQewRVV.js"
+    "/build/assets/AppLayout-CWhgbinT.js"
   ],
   "resources/js/Layouts/AuthenticatedLayout.jsx": [
     "/build/assets/AuthenticatedLayout-Dva5dZwN.js"
@@ -112,7 +112,7 @@
     "/build/assets/GuestLayout-XMlsEBkD.js"
   ],
   "resources/js/Layouts/SideBar.jsx": [
-    "/build/assets/AppLayout-DNQewRVV.js"
+    "/build/assets/AppLayout-CWhgbinT.js"
   ],
   "resources/js/Pages/Admin/Dashboard.jsx": [
     "/build/assets/Dashboard-Ck5wKdMJ.js"
@@ -124,7 +124,7 @@
     "/build/assets/Index-D4bcYvAD.js"
   ],
   "resources/js/Pages/AsistenciasManagement/AttendanceCrud.jsx": [
-    "/build/assets/AttendanceCrud-QVRopFAL.js",
+    "/build/assets/AttendanceCrud-DhOEQSJo.js",
     "/build/assets/AttendanceCrud-DqUanXUh.css"
   ],
   "resources/js/Pages/Auth/ConfirmPassword.jsx": [
@@ -146,10 +146,7 @@
     "/build/assets/VerifyEmail-V-5uwRBv.js"
   ],
   "resources/js/Pages/ClasesManagement/Clases.jsx": [
-    "/build/assets/Clases-3aLHxB5c.js"
-  ],
-  "resources/js/Pages/ClasesManagement/Show.jsx": [
-    "/build/assets/Show-DEVkfsRB.js"
+    "/build/assets/Clases-BWJm5wE3.js"
   ],
   "resources/js/Pages/CopyWelcome.jsx": [
     "/build/assets/CopyWelcome-ByNhCfvu.js"
@@ -158,13 +155,13 @@
     "/build/assets/Dashboard-umB85uvT.js"
   ],
   "resources/js/Pages/Dashboard/Index.jsx": [
-    "/build/assets/Index-Cs76SDGV.js"
+    "/build/assets/Index-CSL70Abi.js"
   ],
   "resources/js/Pages/Index.jsx": [
-    "/build/assets/Index-Ckl8ZaHv.js"
+    "/build/assets/Index-1l1KNZca.js"
   ],
   "resources/js/Pages/Inicio.jsx": [
-    "/build/assets/Inicio-CzN4TO2C.js"
+    "/build/assets/Inicio-D6URAAA9.js"
   ],
   "resources/js/Pages/Landing.jsx": [
     "/build/assets/Landing-CQS4tdRm.js"
@@ -182,7 +179,7 @@
     "/build/assets/Index-Bey5-MEC.js"
   ],
   "resources/js/Pages/Navbar.jsx": [
-    "/build/assets/Navbar-Bcl58Nfk.js"
+    "/build/assets/Navbar-B5FzGTyB.js"
   ],
   "resources/js/Pages/Profile/Edit.jsx": [
     "/build/assets/Edit-CfDkqpQW.js"
@@ -197,7 +194,7 @@
     "/build/assets/UpdateProfileInformationForm-CexUeXs4.js"
   ],
   "resources/js/Pages/Settings/Ajustes.jsx": [
-    "/build/assets/Ajustes-BHH7lW5Q.js"
+    "/build/assets/Ajustes-ZvWwxb14.js"
   ],
   "resources/js/Pages/Terminos/Terminos.jsx": [
     "/build/assets/Terminos-CcIwL_qt.js"
@@ -215,13 +212,14 @@
     "/build/assets/Welcome-Potcq3-H.js"
   ],
   "resources/js/api/userService.js": [
-    "/build/assets/AppLayout-DNQewRVV.js"
+    "/build/assets/AppLayout-CWhgbinT.js"
   ],
   "resources/js/apiClient.js": [
     "/build/assets/apiClient-DgzgG0IP.js"
   ],
   "resources/js/app.jsx": [],
   "resources/js/bootstrap.js": [],
+  "resources/js/utils/ThemeContext.jsx": [],
   "resources/js/utils/csrfFetch.js": [
     "/build/assets/csrfFetch-DJvw9o1x.js"
   ]

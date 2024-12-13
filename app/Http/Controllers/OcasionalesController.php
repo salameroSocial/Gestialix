@@ -60,13 +60,28 @@ class OcasionalesController extends Controller
 
     public function assignOccasional(Request $request)
     {
+        // Validar los datos requeridos
         $validatedData = $request->validate([
             'estudiante_id' => 'required|exists:estudiantes,id',
             'fecha' => 'required|date',
             'clase_id' => 'required|exists:clases,id',
         ]);
 
-        DB::table('ocasionales')->insert([
+        // Verificar si ya existe un registro para evitar duplicados
+        $exists = DB::table('ocasionals')
+            ->where('estudiante_id', $validatedData['estudiante_id'])
+            ->where('fecha', $validatedData['fecha'])
+            ->where('clase_id', $validatedData['clase_id'])
+            ->exists();
+
+        if ($exists) {
+            return response()->json([
+                'message' => 'El estudiante ya está asignado como ocasional para este día.',
+            ], 400);
+        }
+
+        // Insertar el nuevo registro
+        $id = DB::table('ocasionals')->insertGetId([
             'estudiante_id' => $validatedData['estudiante_id'],
             'fecha' => $validatedData['fecha'],
             'clase_id' => $validatedData['clase_id'],
@@ -74,8 +89,12 @@ class OcasionalesController extends Controller
             'updated_at' => now(),
         ]);
 
-        return response()->json(['message' => 'Estudiante ocasional asignado para el día.']);
+        return response()->json([
+            'message' => 'Estudiante ocasional asignado para el día.',
+            'id' => $id,
+        ], 201);
     }
+
 
     public function getOccasionals(Request $request)
     {
